@@ -17,7 +17,9 @@ namespace CoderGoHappy.Events
         
         // Puzzle Events
         public const string PuzzleSolved = "PuzzleSolved";
+        public const string PuzzleFailed = "PuzzleFailed";
         public const string ShowPuzzle = "ShowPuzzle";
+        public const string HidePuzzle = "HidePuzzle";
         
         // Scene Events
         public const string SceneTransitionStart = "SceneTransitionStart";

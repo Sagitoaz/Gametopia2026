@@ -3,8 +3,7 @@ using CoderGoHappy.Events;
 using CoderGoHappy.Scene;
 using CoderGoHappy.Inventory;
 using CoderGoHappy.Interaction;
-// NOTE: This namespace will be added in Day 4
-// using CoderGoHappy.Puzzle;
+using CoderGoHappy.Puzzle;
 
 namespace CoderGoHappy.Core
 {
@@ -53,11 +52,10 @@ namespace CoderGoHappy.Core
         /// </summary>
         [SerializeField] private HotspotManager hotspotManager;
         
-        // NOTE: This reference will be enabled in Day 4 when class is created
-        // /// <summary>
-        // /// Reference to PuzzleSystem
-        // /// </summary>
-        // [SerializeField] private PuzzleSystem puzzleSystem;
+        /// <summary>
+        /// Reference to PuzzleSystem
+        /// </summary>
+        [SerializeField] private PuzzleSystem puzzleSystem;
         
         /// <summary>
         /// PlayerPrefs key for save data
@@ -135,9 +133,8 @@ namespace CoderGoHappy.Core
             if (hotspotManager == null)
                 hotspotManager = FindFirstObjectByType<HotspotManager>();
             
-            // NOTE: Day 4 system will be initialized here when created
-            // if (puzzleSystem == null)
-            //     puzzleSystem = FindFirstObjectByType<PuzzleSystem>();
+            if (puzzleSystem == null)
+                puzzleSystem = FindFirstObjectByType<PuzzleSystem>();
             
             // Validate all systems found
             if (sceneController == null)
@@ -149,9 +146,8 @@ namespace CoderGoHappy.Core
             if (hotspotManager == null)
                 Debug.LogWarning("[GameManager] HotspotManager not found - hotspots may not work");
             
-            // NOTE: Validation for Day 4 system will be added when class exists
-            // if (puzzleSystem == null)
-            //     Debug.LogWarning("[GameManager] PuzzleSystem not found - puzzles may not work");
+            if (puzzleSystem == null)
+                Debug.LogWarning("[GameManager] PuzzleSystem not found - puzzles may not work");
             
             Debug.Log("[GameManager] Systems initialized");
         }
@@ -319,11 +315,10 @@ namespace CoderGoHappy.Core
         /// </summary>
         public HotspotManager HotspotManager => hotspotManager;
         
-        // NOTE: This accessor will be enabled in Day 4
-        // /// <summary>
-        // /// Get reference to PuzzleSystem
-        // /// </summary>
-        // public PuzzleSystem PuzzleSystem => puzzleSystem;
+        /// <summary>
+        /// Get reference to PuzzleSystem
+        /// </summary>
+        public PuzzleSystem PuzzleSystem => puzzleSystem;
         
         #endregion
     }
