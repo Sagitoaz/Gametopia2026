@@ -1,9 +1,9 @@
 using UnityEngine;
 using CoderGoHappy.Events;
 using CoderGoHappy.Scene;
-// NOTE: These namespaces will be added in Day 2-4
-// using CoderGoHappy.Inventory;
-// using CoderGoHappy.Interaction;
+using CoderGoHappy.Inventory;
+using CoderGoHappy.Interaction;
+// NOTE: This namespace will be added in Day 4
 // using CoderGoHappy.Puzzle;
 
 namespace CoderGoHappy.Core
@@ -43,17 +43,17 @@ namespace CoderGoHappy.Core
         /// </summary>
         [SerializeField] private SceneController sceneController;
         
-        // NOTE: These references will be enabled in Day 2-4 when classes are created
-        // /// <summary>
-        // /// Reference to InventorySystem
-        // /// </summary>
-        // [SerializeField] private InventorySystem inventorySystem;
-        // 
-        // /// <summary>
-        // /// Reference to HotspotManager
-        // /// </summary>
-        // [SerializeField] private HotspotManager hotspotManager;
-        // 
+        /// <summary>
+        /// Reference to InventorySystem
+        /// </summary>
+        [SerializeField] private InventorySystem inventorySystem;
+        
+        /// <summary>
+        /// Reference to HotspotManager
+        /// </summary>
+        [SerializeField] private HotspotManager hotspotManager;
+        
+        // NOTE: This reference will be enabled in Day 4 when class is created
         // /// <summary>
         // /// Reference to PuzzleSystem
         // /// </summary>
@@ -129,13 +129,13 @@ namespace CoderGoHappy.Core
             if (sceneController == null)
                 sceneController = FindFirstObjectByType<SceneController>();
             
-            // NOTE: Day 2-4 systems will be initialized here when created
-            // if (inventorySystem == null)
-            //     inventorySystem = FindFirstObjectByType<InventorySystem>();
-            // 
-            // if (hotspotManager == null)
-            //     hotspotManager = FindFirstObjectByType<HotspotManager>();
-            // 
+            if (inventorySystem == null)
+                inventorySystem = FindFirstObjectByType<InventorySystem>();
+            
+            if (hotspotManager == null)
+                hotspotManager = FindFirstObjectByType<HotspotManager>();
+            
+            // NOTE: Day 4 system will be initialized here when created
             // if (puzzleSystem == null)
             //     puzzleSystem = FindFirstObjectByType<PuzzleSystem>();
             
@@ -143,13 +143,13 @@ namespace CoderGoHappy.Core
             if (sceneController == null)
                 Debug.LogWarning("[GameManager] SceneController not found - scene transitions may not work");
             
-            // NOTE: Validation for Day 2-4 systems will be added when classes exist
-            // if (inventorySystem == null)
-            //     Debug.LogWarning("[GameManager] InventorySystem not found - inventory may not work");
-            // 
-            // if (hotspotManager == null)
-            //     Debug.LogWarning("[GameManager] HotspotManager not found - hotspots may not work");
-            // 
+            if (inventorySystem == null)
+                Debug.LogWarning("[GameManager] InventorySystem not found - inventory may not work");
+            
+            if (hotspotManager == null)
+                Debug.LogWarning("[GameManager] HotspotManager not found - hotspots may not work");
+            
+            // NOTE: Validation for Day 4 system will be added when class exists
             // if (puzzleSystem == null)
             //     Debug.LogWarning("[GameManager] PuzzleSystem not found - puzzles may not work");
             
@@ -309,17 +309,17 @@ namespace CoderGoHappy.Core
         /// </summary>
         public SceneController SceneController => sceneController;
         
-        // NOTE: These accessors will be enabled in Day 2-4
-        // /// <summary>
-        // /// Get reference to InventorySystem
-        // /// </summary>
-        // public InventorySystem InventorySystem => inventorySystem;
-        // 
-        // /// <summary>
-        // /// Get reference to HotspotManager
-        // /// </summary>
-        // public HotspotManager HotspotManager => hotspotManager;
-        // 
+        /// <summary>
+        /// Get reference to InventorySystem
+        /// </summary>
+        public InventorySystem InventorySystem => inventorySystem;
+        
+        /// <summary>
+        /// Get reference to HotspotManager
+        /// </summary>
+        public HotspotManager HotspotManager => hotspotManager;
+        
+        // NOTE: This accessor will be enabled in Day 4
         // /// <summary>
         // /// Get reference to PuzzleSystem
         // /// </summary>
