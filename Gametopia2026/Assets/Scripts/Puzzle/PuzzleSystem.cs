@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using CoderGoHappy.Events;
+using CoderGoHappy.Core;
 
 namespace CoderGoHappy.Puzzle
 {
@@ -92,9 +93,9 @@ namespace CoderGoHappy.Puzzle
             // Subscribe to events
             if (eventManager != null)
             {
-                eventManager.Subscribe(GameEvents.SHOW_PUZZLE, OnShowPuzzleEvent);
-                eventManager.Subscribe(GameEvents.HIDE_PUZZLE, OnHidePuzzleEvent);
-                eventManager.Subscribe(GameEvents.PUZZLE_SOLVED, OnPuzzleSolvedEvent);
+                eventManager.Subscribe(GameEvents.ShowPuzzle, OnShowPuzzleEvent);
+                eventManager.Subscribe(GameEvents.HidePuzzle, OnHidePuzzleEvent);
+                eventManager.Subscribe(GameEvents.PuzzleSolved, OnPuzzleSolvedEvent);
             }
         }
 
@@ -103,9 +104,9 @@ namespace CoderGoHappy.Puzzle
             // Unsubscribe from events
             if (eventManager != null)
             {
-                eventManager.Unsubscribe(GameEvents.SHOW_PUZZLE, OnShowPuzzleEvent);
-                eventManager.Unsubscribe(GameEvents.HIDE_PUZZLE, OnHidePuzzleEvent);
-                eventManager.Unsubscribe(GameEvents.PUZZLE_SOLVED, OnPuzzleSolvedEvent);
+                eventManager.Unsubscribe(GameEvents.ShowPuzzle, OnShowPuzzleEvent);
+                eventManager.Unsubscribe(GameEvents.HidePuzzle, OnHidePuzzleEvent);
+                eventManager.Unsubscribe(GameEvents.PuzzleSolved, OnPuzzleSolvedEvent);
             }
         }
 
