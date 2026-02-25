@@ -4,6 +4,7 @@ using CoderGoHappy.Scene;
 using CoderGoHappy.Inventory;
 using CoderGoHappy.Interaction;
 using CoderGoHappy.Puzzle;
+using UnityEngine.SceneManagement;
 
 namespace CoderGoHappy.Core
 {
@@ -87,6 +88,13 @@ namespace CoderGoHappy.Core
             LoadGameState();
             
             Debug.Log("[GameManager] All systems initialized successfully");
+            TestStart();
+        }
+
+        async void TestStart()
+        {
+            await System.Threading.Tasks.Task.Delay(100); // Wait a frame for all systems to initialize
+            SceneManager.LoadScene(1);
         }
         
         private void OnDestroy()

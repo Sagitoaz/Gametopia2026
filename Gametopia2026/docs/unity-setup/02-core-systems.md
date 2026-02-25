@@ -376,23 +376,45 @@ public class TestCoreAccess : MonoBehaviour
 
 ### 9.2. Test Save/Load
 
-Press **Play**, mở **Console**, nhập commands (cần Console Pro hoặc dùng custom UI):
+**Cách 1: Dùng TestSaveLoad Script (Khuyến nghị)**
 
-**Via Code (Runtime Inspector or Debug Menu):**
+1. Attach script **TestSaveLoad.cs** vào bất kỳ GameObject nào (hoặc tạo mới)
+   - File: `Assets/Scripts/Test/TestSaveLoad.cs`
+2. Press **Play**
+3. Dùng keyboard controls (hiển thị trên Game View):
+   - **T** - Add test item vào GameStateData
+   - **SPACE** - Save game
+   - **L** - Load và check items
+   - **C** - Clear save data (reset)
+
+4. **Test Workflow:**
+   - Press **T** → Console: "✓ Added 'test_item_01'"
+   - Press **SPACE** → Console: "[GameManager] Game saved successfully"
+   - **Stop Play mode**
+   - **Press Play again**
+   - Press **L** → Console: "Item 'test_item_01' exists: True" ✅
+
+**Cách 2: Manual Code Test (Advanced)**
+
+Tạo script riêng với code sau trong `Update()`:
 
 ```csharp
-// Add test item
-GameStateData.Instance.AddCollectedItem("test_item_01");
+if (Input.GetKeyDown(KeyCode.T))
+{
+    // Add test item
+    GameStateData.Instance.AddCollectedItem("test_item_01");
+    Debug.Log("Item added");
+}
 
-// Save game
-GameManager.Instance.SaveGame();
-
-// Stop Play, then Play again
-
-// Check if item persists
-bool hasItem = GameStateData.Instance.HasCollectedItem("test_item_01");
-Debug.Log($"Item persists: {hasItem}"); // Should be true
+if (Input.GetKeyDown(KeyCode.L))
+{
+    // Check if item persists
+    bool hasItem = GameStateData.Instance.HasItem("test_item_01");
+    Debug.Log($"Item persists: {hasItem}"); // Should be true
+}
 ```
+
+**Lưu ý:** Unity Console chỉ hiển thị log, không thể nhập commands trực tiếp!
 
 ---
 

@@ -9,21 +9,24 @@ namespace CoderGoHappy.Core
     /// Contains all data that needs to be saved/loaded
     /// </summary>
     [Serializable]
-    public class GameStateData
+    public class GameStateData : MonoBehaviour
     {
         #region Singleton
         
         private static GameStateData instance;
-        public static GameStateData Instance
+        public static GameStateData Instance => instance;
+        
+        private void Awake()
         {
-            get
+            if (instance != null && instance != this)
             {
-                if (instance == null)
-                {
-                    instance = new GameStateData();
-                }
-                return instance;
+                Debug.LogWarning("[GameStateData] Duplicate instance detected, destroying...");
+                Destroy(gameObject);
+                return;
             }
+            
+            instance = this;
+            Debug.Log("[GameStateData] Initialized");
         }
         
         #endregion
