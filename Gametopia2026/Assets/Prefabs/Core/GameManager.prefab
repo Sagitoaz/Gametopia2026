@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b3eee81330c0554591a8b053481ca17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoderGoHappy.Core.GameManager
-  sceneController: {fileID: 0}
+  sceneController: {fileID: 7261677494743264268, guid: dec44ab0e65ee5a438b3e19e70593687, type: 3}
   inventorySystem: {fileID: 0}
   hotspotManager: {fileID: 0}
   puzzleSystem: {fileID: 0}

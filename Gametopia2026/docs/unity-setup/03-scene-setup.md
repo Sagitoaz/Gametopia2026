@@ -62,7 +62,19 @@ SceneController cần một **UI Image** để fade in/out transitions.
    - **Alpha**: 0 (hoàn toàn transparent lúc start)
    - **Raycast Target**: **TÍCH** (để block input khi fade)
 
-### 2.2. Configure RectTransform
+### 2.2. Add CanvasGroup Component
+
+**QUAN TRỌNG:** FadeOverlay cần **CanvasGroup** để SceneController control fade effect!
+
+1. Vẫn select **FadeOverlay**
+2. **Inspector → Add Component**
+3. Search: **Canvas Group**
+4. Configure **CanvasGroup**:
+   - **Alpha**: 0 (transparent ban đầu)
+   - **Interactable**: BỎ TÍCH ☐
+   - **Block Raycasts**: TÍCH ☑ (block input khi fade)
+
+### 2.3. Configure RectTransform
 
 Select **FadeOverlay**, trong Inspector:
 
@@ -73,7 +85,7 @@ Select **FadeOverlay**, trong Inspector:
 **Canvas Renderer:**
 - **Cull Transparent Mesh**: Tích (optional optimization)
 
-### 2.3. Move to Top of Canvas
+### 2.4. Move to Top of Canvas
 
 Drag **FadeOverlay** lên đầu tiên trong Canvas children (để render trên cùng):
 
@@ -84,17 +96,22 @@ Canvas
 └── PuzzleUI
 ```
 
+**Components Summary của FadeOverlay:**
+- ✅ RectTransform (Stretch Both)
+- ✅ Image (Black, Alpha 0, Raycast Target ON)
+- ✅ **CanvasGroup** (Alpha 0, Block Raycasts ON) ← REQUIRED!
+
 ---
 
-## Step 3: Assign Fade Overlay to SceneController
+## Step 3: Assign Fade Canvas Group to SceneController
 
 ### 3.1. Inspector Assignment
 
 1. Select **SceneController** GameObject
-2. Trong **SceneController component**, tìm field **Fade Overlay**
-3. Drag **FadeOverlay** từ Hierarchy vào field đó
+2. Trong **SceneController component**, tìm field **Fade Canvas Group**
+3. **Drag FadeOverlay** từ Hierarchy vào field đó
 
-**Kết quả:** Fade Overlay field sẽ reference FadeOverlay Image.
+**Kết quả:** Fade Canvas Group field sẽ reference FadeOverlay's CanvasGroup component.
 
 ### 3.2. Configure Fade Settings
 
@@ -102,8 +119,8 @@ Trong **SceneController component**, các settings sau đã có default values t
 
 | Field | Default Value | Mô tả |
 |-------|---------------|-------|
-| **Fade Duration** | 0.5f | Thời gian fade (giây) |
-| **Fade Overlay** | (assigned) | UI Image để fade |
+| **Default Fade Duration** | 0.5f | Thời gian fade (giây) |
+| **Fade Canvas Group** | (assigned) | CanvasGroup để fade |
 
 **Thường không cần đổi**, nhưng có thể tweak:
 - **Faster**: 0.3f (snappy transitions)
@@ -391,7 +408,7 @@ public class MusicManager : MonoBehaviour
 Khi tạo Level02, Level03, etc.:
 1. Drag `SceneController.prefab` vào scene
 2. Assign FadeOverlay của scene đó vào prefab instance
-3. Prefab instance sẽ override chỉ Fade Overlay field
+3. Prefab instance sẽ override chỉ Fade Canvas Group field
 
 ---
 
@@ -399,12 +416,13 @@ Khi tạo Level02, Level03, etc.:
 
 ### Issue: Scene không fade, load ngay lập tức
 
-**Nguyên nhân:** FadeOverlay không được assign
+**Nguyên nhân:** FadeOverlay không được assign hoặc thiếu CanvasGroup
 
 **Giải pháp:**
-1. Check SceneController component → Fade Overlay field có assigned không
-2. Verify FadeOverlay là UI **Image** component (không phải GameObject)
-3. Check Canvas có **Canvas Scaler** component
+1. Check SceneController component → Fade Canvas Group field có assigned không
+2. Verify FadeOverlay có **CanvasGroup** component (REQUIRED!)
+3. Check FadeOverlay cũng có Image component (Black, Alpha 0)
+4. Check Canvas có **Canvas Scaler** component
 
 ### Issue: "Scene 'Level02' not found"
 
