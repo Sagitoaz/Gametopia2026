@@ -94,7 +94,24 @@ namespace CoderGoHappy.Inventory
             
             // Hide tooltip
             if (tooltipPanel != null)
+            {
                 tooltipPanel.SetActive(false);
+                
+                // CRITICAL: Disable raycasts on tooltip to prevent hover flickering
+                // When tooltip appears over cursor, it shouldn't block pointer events
+                Image tooltipImage = tooltipPanel.GetComponent<Image>();
+                if (tooltipImage != null)
+                {
+                    tooltipImage.raycastTarget = false;
+                }
+                
+                // Also disable raycasts on all children (like tooltip text)
+                Image[] childImages = tooltipPanel.GetComponentsInChildren<Image>(true);
+                foreach (Image img in childImages)
+                {
+                    img.raycastTarget = false;
+                }
+            }
             
             // Initialize slots
             InitializeSlots();

@@ -218,33 +218,86 @@ for (int i = 0; i < inventorySlots.Length; i++)
 1. Right-click **InventoryPanel** → **UI → Panel**
 2. Rename: `TooltipPanel`
 3. **RectTransform:**
+   - **Anchor Preset**: **Bottom-Center** (Click anchor icon → chọn bottom-center)
+     - Pivot X: 0.5, Pivot Y: 0
    - **Width**: 300
    - **Height**: 100
-   - **Position**: Hover above slots (e.g., Y = 100)
+   - **Pos X**: 0 (center horizontally)
+   - **Pos Y**: 100 (hover above inventory slots)
+   
+   **Giải thích:** Bottom-Center anchor giúp tooltip luôn hiển thị phía trên giữa inventory, không bị ảnh hưởng bởi screen size
 
 ### 7.2. Configure Tooltip Image
 
 **Image component:**
 - **Color**: RGBA: 0, 0, 0, 220 (dark semi-transparent)
 - **Sprite**: (optional) tooltip background sprite
+- ⚠️ **Raycast Target**: **BỎ TÍCH** ☐ (CRITICAL!)
+
+**TẠI SAO PHẢI TẮT RAYCAST TARGET?**
+- Nếu bật → tooltip xuất hiện che chuột → trigger OnPointerExit → tooltip ẩn → lặp lại → **nhấp nháy liên tục!**
+- Code sẽ tự động disable raycast, nhưng nên config đúng từ đầu
+
+**Cách chọn Anchor Preset:**
+1. Click vào **Anchor icon** (hình vuông nhỏ ở góc trên bên trái RectTransform)
+2. Một grid 4x4 xuất hiện - chọn **bottom-center** (hàng dưới, cột giữa)
+3. Anchor sẽ hiển thị: `Anchors: Min(0.5, 0) Max(0.5, 0)`
 
 ### 7.3. Create Tooltip Text
 
-1. Right-click **TooltipPanel** → **UI → Text**
+1. Right-click **TooltipPanel** → **UI → Text - TextMeshPro** (hoặc legacy Text)
 2. Rename: `TooltipText`
-3. Configure:
-   - **Anchor**: Stretch-Stretch
-   - **Padding**: 10 on all sides
+3. Configure **RectTransform:**
+   - **Anchor Preset**: **Stretch-Stretch** (Alt+Shift+Click góc dưới phải của grid)
+   - **Left, Right, Top, Bottom**: 10 (padding 10px mọi phía)
+   
+4. Configure **TextMeshProUGUI/Text component:**
    - **Font Size**: 16
    - **Color**: White
    - **Alignment**: Center-Middle
    - **Horizontal/Vertical Overflow**: Wrap
+   - ⚠️ **Raycast Target**: **BỎ TÍCH** ☐ (giống TooltipPanel)
 
-### 7.4. Hide Tooltip by Default
+### 7.4. Move Tooltip to End & Hide by Default
 
-1. Select **TooltipPanel**
-2. **Inspector** → **Uncheck** checkbox bên cạnh tên GameObject
-3. Tooltip sẽ hidden lúc start ✅
+**QUAN TRỌNG:** Tooltip phải render **SAU** (trên) các UI elements khác!
+
+1. Trong **Hierarchy**, drag **TooltipPanel** xuống **cuối cùng** trong Canvas children
+2. Select **TooltipPanel**
+3. **Inspector** → **Uncheck** checkbox bên cạnh tên GameObject
+4. Tooltip sẽ hidden lúc start ✅
+
+**Hierarchy structure phải như sau:**
+```
+Canvas
+├── InventoryPanel
+│   ├── SlotsContainer (+ 20 slots)
+│   └── DraggedItemIcon
+└── TooltipPanel  ← PHẢI Ở CUỐI! (render trên cùng)
+    └── TooltipText
+```
+
+**Nếu TooltipPanel ở giữa hierarchy:**
+- Tooltip sẽ bị che bởi các UI elements khác
+- Các elements sau nó sẽ render đè lên tooltip
+
+**📘 Anchor Presets Quick Reference:**
+
+```
+Anchor Grid (4x4):
+┌─────┬─────┬─────┬─────┐
+│TL   │TC   │TC   │TR   │  Top (T)
+├─────┼─────┼─────┼─────┤
+│ML   │MC   │MC   │MR   │  Middle (M)
+├─────┼─────┼─────┼─────┤
+│ML   │MC   │MC   │MR   │  
+├─────┼─────┼─────┼─────┤
+│BL   │BC ✓ │BC   │BR   │  Bottom (B) ← TooltipPanel dùng BC
+└─────┴─────┴─────┴─────┘
+  Left Center    Right
+
+BC = Bottom-Center (tooltip xuất hiện phía trên inventory giữa)
+```
 
 ---
 
@@ -508,6 +561,29 @@ Verify:
 2. Verify TooltipPanel có **Canvas Group** component (nếu dùng alpha fade)
 3. Check code `ShowTooltip()` có được call khi hover
 
+### Issue: Tooltip nhấp nháy liên tục (flickering)
+
+**Nguyên nhân:** Tooltip xuất hiện che cursor → trigger OnPointerExit → hide → trigger OnPointerEnter → loop
+
+**Giải pháp:**
+1. Select **TooltipPanel** → **Image component** → **Raycast Target**: BỎ TÍCH ☐
+2. Select **TooltipText** → **TextMeshProUGUI component** → **Raycast Target**: BỎ TÍCH ☐
+3. Code đã tự động disable raycasts, nhưng nên set manual để chắc chắn
+
+### Issue: Tooltip bị che bởi các UI elements khác
+
+**Nguyên nhân:** TooltipPanel không render sau (trên) các elements khác
+
+**Giải pháp:**
+1. Trong **Hierarchy**, drag **TooltipPanel** xuống **cuối cùng** trong Canvas children
+2. Elements ở cuối hierarchy render sau (trên cùng)
+3. Structure đúng:
+   ```
+   Canvas
+   ├── InventoryPanel
+   └── TooltipPanel ← Phải ở cuối!
+   ```
+
 ### Issue: Items không persist khi chuyển scene
 
 **Nguyên nhân:** GameStateData chưa save hoặc InventorySystem không load từ GameState
@@ -534,11 +610,15 @@ Verify:
 - [ ] InventoryPanel created với InventorySystem + InventoryUI scripts
 - [ ] 20 InventorySlots created và arranged trong GridLayoutGroup
 - [ ] TooltipPanel + TooltipText configured
+  - [ ] Raycast Target = FALSE trên TooltipPanel Image
+  - [ ] Raycast Target = FALSE trên TooltipText
+  - [ ] TooltipPanel ở **cuối cùng** trong Canvas hierarchy (render trên cùng)
 - [ ] DraggedItemIcon created
 - [ ] All UI references assigned to InventoryUI component
 - [ ] Test item added successfully và hiện trong slot
 - [ ] Drag-drop functionality tested và working
-- [ ] Tooltip hiện khi hover
+- [ ] Tooltip hiện khi hover (không nhấp nháy!)
+- [ ] Tooltip render trên các UI elements khác
 - [ ] Item selection (highlight) working
 
 **Nếu tất cả OK → Ready for [05-hotspot-setup.md](05-hotspot-setup.md)** 🖱️
