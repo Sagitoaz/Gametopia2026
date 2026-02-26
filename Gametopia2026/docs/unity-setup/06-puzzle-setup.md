@@ -7,6 +7,11 @@ Hướng dẫn setup **PuzzleSystem** và 3 loại puzzle UI: **ButtonSequence**
 - Đã hoàn thành [05-hotspot-setup.md](05-hotspot-setup.md)
 - Canvas đã có trong Level01 scene
 
+**⚠️ QUAN TRỌNG:** Guide này dùng **TextMeshPro (TMP)** components:
+- **TMP_InputField** thay vì legacy InputField
+- **TextMeshProUGUI** thay vì legacy Text
+- Nếu Unity prompt import TMP Essentials → Click "Import TMP Essentials"
+
 ---
 
 ## Architecture Overview
@@ -21,7 +26,7 @@ Canvas
 │   └── Button[] (4-6 buttons cho sequence)
 ├── CodeInputPuzzle (Panel)
 │   ├── CodeInputPuzzle (script)
-│   ├── InputField (nhập code)
+│   ├── TMP_InputField (nhập code) ← TextMeshPro!
 │   └── Submit/Clear buttons
 └── ColorMatchPuzzle (Panel)
     ├── ColorMatchPuzzle (script)
@@ -111,9 +116,10 @@ Canvas
 
 ### 2.6. Create Progress Text (Optional)
 
-1. Right-click **ButtonSequencePuzzle** → **UI → Text**
-2. Rename: `ProgressText`
-3. Configure:
+1. Right-click **ButtonSequencePuzzle** → **UI → Text - TextMeshPro**
+2. Nếu prompt "Import TMP Essentials" → Click **Import TMP Essentials** (lần đầu dùng TMP)
+3. Rename: `ProgressText`
+4. Configure:
    - **Text**: "0/4" (sẽ update runtime)
    - **Font Size**: 24
    - **Alignment**: Center
@@ -164,17 +170,26 @@ Select **ButtonSequencePuzzle** panel, trong **ButtonSequencePuzzle component**:
 1. Select **CodeInputPuzzle**
 2. **Add Component → Code Input Puzzle**
 
-### 3.3. Create InputField
+### 3.3. Create TMP_InputField
 
-1. Right-click **CodeInputPuzzle** → **UI → Input Field**
-2. Rename: `CodeInputField`
-3. Configure:
+1. Right-click **CodeInputPuzzle** → **UI → Input Field - TextMeshPro**
+2. Nếu prompt "Import TMP Essentials" → Click **Import TMP Essentials**
+3. Rename: `CodeInputField`
+4. Configure **TMP_InputField component**:
    - **Position**: (0, 50) - upper-middle
    - **Width x Height**: 300 x 60
    - **Placeholder Text**: "Enter Code..."
-   - **Content Type**: Integer Number (numeric only)
+   - **Content Type**: **Integer Number** (numeric only)
    - **Font Size**: 32
    - **Alignment**: Center
+
+**Lưu ý:** TMP_InputField có cấu trúc:
+```
+CodeInputField (TMP_InputField)
+├── Text Area (RectMask2D)
+│   └── Text (TextMeshProUGUI) - nhập liệu hiển thị ở đây
+└── Placeholder (TextMeshProUGUI) - "Enter Code..."
+```
 
 ### 3.4. Create Submit Button
 
@@ -194,7 +209,7 @@ Select **ButtonSequencePuzzle** panel, trong **ButtonSequencePuzzle component**:
 
 ### 3.6. Create Feedback Text
 
-1. Right-click **CodeInputPuzzle** → **UI → Text**
+1. Right-click **CodeInputPuzzle** → **UI → Text - TextMeshPro**
 2. Rename: `FeedbackText`
 3. Configure:
    - **Text**: "" (empty)
@@ -204,7 +219,7 @@ Select **ButtonSequencePuzzle** panel, trong **ButtonSequencePuzzle component**:
 
 ### 3.7. Create Description Text (Optional)
 
-1. Right-click **CodeInputPuzzle** → **UI → Text**
+1. Right-click **CodeInputPuzzle** → **UI → Text - TextMeshPro**
 2. Rename: `DescriptionText`
 3. Configure:
    - **Text**: "Enter the 4-digit password"
@@ -290,7 +305,7 @@ Duplicate 4 lần → `SequenceSlot_0` to `SequenceSlot_4` (total 5 slots)
 
 ### 4.7. Create Progress Text
 
-1. Right-click **ColorMatchPuzzle** → **UI → Text**
+1. Right-click **ColorMatchPuzzle** → **UI → Text - TextMeshPro**
 2. Rename: `ProgressText`
 3. **Text**: "0/5"
 4. **Position**: (0, 150)
@@ -560,6 +575,26 @@ public class AchievementManager : MonoBehaviour
 
 ## Troubleshooting
 
+### Issue: Không kéo được TMP_InputField vào codeInputField field
+
+**Nguyên nhân:** Script đang expect legacy InputField thay vì TMP_InputField
+
+**Giải pháp:**
+1. **ĐÚNG:** Dùng **UI → Input Field - TextMeshPro** khi tạo InputField
+2. **SAI:** UI → Input Field (legacy) - sẽ không assign được
+3. Check script đã có `using TMPro;` và field type là `TMP_InputField`
+4. Nếu vẫn lỗi: Delete và recreate InputField với TMP variant
+
+### Issue: Không kéo được TextMeshProUGUI text vào feedbackText/descriptionText
+
+**Nguyên nhân:** Text component là legacy Text thay vì TextMeshProUGUI
+
+**Giải pháp:**
+1. **ĐÚNG:** Dùng **UI → Text - TextMeshPro** khi tạo text
+2. **SAI:** UI → Text (legacy) - sẽ không assign được
+3. Lần đầu dùng TMP → Unity prompt "Import TMP Essentials" → Click Import
+4. Check text component type trong Inspector: phải là **TextMeshProUGUI**, không phải **Text**
+
 ### Issue: Puzzle panel không hiện khi click hotspot
 
 **Nguyên nhân:** PuzzleSystem không find được puzzle hoặc puzzleID mismatch
@@ -632,8 +667,11 @@ PuzzleBase đã cache:
 
 ## Summary Checklist
 
+- [ ] **TMP Essentials imported** (lần đầu dùng TextMeshPro)
 - [ ] PuzzleSystem GameObject created và initialized
 - [ ] 3 puzzle UI panels created: ButtonSequence, CodeInput, ColorMatch
+  - [ ] CodeInputPuzzle dùng **TMP_InputField** (không phải legacy InputField)
+  - [ ] All text components dùng **TextMeshProUGUI** (không phải legacy Text)
 - [ ] All UI references assigned to respective puzzle scripts
 - [ ] PuzzleConfig assets created và assigned
 - [ ] Test puzzle triggered từ hotspot

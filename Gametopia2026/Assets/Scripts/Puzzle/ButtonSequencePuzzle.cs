@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using DG.Tweening;
+using TMPro;
 
 namespace CoderGoHappy.Puzzle
 {
@@ -27,7 +28,7 @@ namespace CoderGoHappy.Puzzle
         /// Optional text to show current sequence length
         /// </summary>
         [Tooltip("Optional UI Text to show sequence progress (e.g., '2/4')")]
-        public Text sequenceProgressText;
+        public TextMeshProUGUI sequenceProgressText;
 
         /// <summary>
         /// Optional button to manually clear current sequence

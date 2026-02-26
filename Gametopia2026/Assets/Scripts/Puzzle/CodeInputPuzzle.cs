@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using TMPro;
 
 namespace CoderGoHappy.Puzzle
 {
@@ -15,11 +16,11 @@ namespace CoderGoHappy.Puzzle
         #region Inspector Fields
 
         /// <summary>
-        /// InputField where player types the code
+        /// TMP_InputField where player types the code
         /// </summary>
         [Header("Code Input Settings")]
-        [Tooltip("InputField for player to enter code")]
-        public InputField codeInputField;
+        [Tooltip("TMP_InputField for player to enter code")]
+        public TMP_InputField codeInputField;
 
         /// <summary>
         /// Button to submit the code
@@ -37,13 +38,13 @@ namespace CoderGoHappy.Puzzle
         /// Optional text to show hints or feedback
         /// </summary>
         [Tooltip("Optional text for hints/feedback")]
-        public Text feedbackText;
+        public TextMeshProUGUI feedbackText;
 
         /// <summary>
         /// Optional text to show description from PuzzleConfig
         /// </summary>
         [Tooltip("Optional text to display puzzle description")]
-        public Text descriptionText;
+        public TextMeshProUGUI descriptionText;
 
         /// <summary>
         /// Placeholder text for empty input field
@@ -102,13 +103,13 @@ namespace CoderGoHappy.Puzzle
             // Setup input field validation (numeric only)
             if (codeInputField != null)
             {
-                codeInputField.contentType = InputField.ContentType.IntegerNumber;
+                codeInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
                 codeInputField.onEndEdit.AddListener(OnInputEndEdit);
 
                 // Set placeholder
                 if (codeInputField.placeholder != null)
                 {
-                    Text placeholderComponent = codeInputField.placeholder.GetComponent<Text>();
+                    TextMeshProUGUI placeholderComponent = codeInputField.placeholder.GetComponent<TextMeshProUGUI>();
                     if (placeholderComponent != null)
                     {
                         placeholderComponent.text = placeholderText;
