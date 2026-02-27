@@ -7,6 +7,7 @@ using TMPro;
 using CoderGoHappy.Core;
 using CoderGoHappy.Events;
 using CoderGoHappy.Data;
+using CoderGoHappy.Interaction;
 
 namespace CoderGoHappy.Inventory
 {
@@ -48,6 +49,12 @@ namespace CoderGoHappy.Inventory
         [SerializeField] private TextMeshProUGUI tooltipText;
         
         /// <summary>
+        /// Reference to HotspotManager for drag-drop item use
+        /// </summary>
+        [Header("System References (Drag-Drop)")]
+        [SerializeField] private HotspotManager hotspotManager;
+
+        /// <summary>
         /// Dragged item visual
         /// </summary>
         [Header("Drag Visual")]
@@ -86,6 +93,13 @@ namespace CoderGoHappy.Inventory
                 inventorySystem = FindFirstObjectByType<InventorySystem>();
                 if (inventorySystem == null)
                     Debug.LogError("[InventoryUI] InventorySystem not found!", this);
+            }
+
+            // Auto-find HotspotManager if not assigned
+            if (hotspotManager == null)
+            {
+                hotspotManager = FindFirstObjectByType<HotspotManager>();
+                // Not an error - some scenes may not have hotspots
             }
             
             // Hide drag visual
@@ -364,9 +378,19 @@ namespace CoderGoHappy.Inventory
             }
             
             // Check if dropped on a hotspot (via HotspotManager)
-            // Note: HotspotManager will handle this in Day 3
-            // For now, we just notify that drag ended
-            
+            if (hotspotManager != null && draggedItem != null)
+            {
+                bool used = hotspotManager.HandleItemDrop(draggedItem, Input.mousePosition);
+                if (used)
+                {
+                    Debug.Log($"[InventoryUI] Item '{draggedItem.itemName}' used on hotspot via drag-drop");
+                }
+                else
+                {
+                    Debug.Log($"[InventoryUI] Item '{draggedItem.itemName}' dropped but no valid hotspot found");
+                }
+            }
+
             // Reset dragged references
             draggedItem = null;
             draggedSlotIndex = -1;

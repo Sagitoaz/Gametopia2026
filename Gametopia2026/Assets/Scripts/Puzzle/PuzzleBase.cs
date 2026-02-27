@@ -64,6 +64,11 @@ namespace CoderGoHappy.Puzzle
         /// </summary>
         protected EventManager eventManager;
 
+        /// <summary>
+        /// CanvasGroup for show/hide (auto-created if puzzleUI == gameObject)
+        /// </summary>
+        protected CanvasGroup canvasGroup;
+
         #endregion
 
         #region Unity Lifecycle
@@ -80,9 +85,23 @@ namespace CoderGoHappy.Puzzle
             }
 
             // Hide UI initially
-            if (puzzleUI != null)
+            if (puzzleUI != null && puzzleUI != gameObject)
             {
                 puzzleUI.SetActive(false);
+            }
+            else if (puzzleUI == gameObject)
+            {
+                // If puzzleUI is same as script holder, use CanvasGroup to hide (preserves LayoutGroup)
+                canvasGroup = GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = gameObject.AddComponent<CanvasGroup>();
+                }
+                
+                // Hide using CanvasGroup (keeps children active, preserves layouts)
+                canvasGroup.alpha = 0f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
             }
         }
 
@@ -110,6 +129,8 @@ namespace CoderGoHappy.Puzzle
         /// </summary>
         public virtual void ShowPuzzle()
         {
+            Debug.Log($"[PuzzleBase] ShowPuzzle() called on {gameObject.name}");
+            
             if (config == null)
             {
                 Debug.LogError($"[PuzzleBase] Cannot show puzzle - no config assigned!");
@@ -139,16 +160,36 @@ namespace CoderGoHappy.Puzzle
             }
 
             // Show UI
+            Debug.Log($"[PuzzleBase] puzzleUI = {(puzzleUI != null ? puzzleUI.name : "NULL")}, gameObject = {gameObject.name}, same? {puzzleUI == gameObject}");
+            
             if (puzzleUI != null)
             {
-                puzzleUI.SetActive(true);
+                 puzzleUI.SetActive(true);
+                if (puzzleUI != gameObject)
+                {
+                    // Different object - use SetActive
+                    puzzleUI.SetActive(true);
+                }
+                else if (canvasGroup != null)
+                {
+                    // Same object - use CanvasGroup (preserves LayoutGroups)
+                    canvasGroup.alpha = 1f;
+                    canvasGroup.interactable = true;
+                    canvasGroup.blocksRaycasts = true;
+                }
+                
+                Debug.Log($"[PuzzleBase] PuzzleUI activated: {puzzleUI.name}, activeInHierarchy: {puzzleUI.activeInHierarchy}");
+            }
+            else
+            {
+                Debug.LogWarning($"[PuzzleBase] puzzleUI is NULL! Puzzle UI won't be visible.");
             }
 
             // Let concrete puzzle set up its specific UI
             SetupPuzzleUI();
 
-            // Publish event
-            eventManager?.Publish(GameEvents.ShowPuzzle, config.puzzleID);
+            // Note: Don't publish ShowPuzzle event here - it would cause recursion
+            // with PuzzleSystem.OnShowPuzzleEvent
         }
 
         /// <summary>
@@ -165,7 +206,19 @@ namespace CoderGoHappy.Puzzle
             // Hide UI
             if (puzzleUI != null)
             {
-                puzzleUI.SetActive(false);
+                 puzzleUI.SetActive(false);
+                if (puzzleUI != gameObject)
+                {
+                    // Different object - use SetActive
+                    puzzleUI.SetActive(false);
+                }
+                else if (canvasGroup != null)
+                {
+                    // Same object - use CanvasGroup (preserves LayoutGroups)
+                    canvasGroup.alpha = 0f;
+                    canvasGroup.interactable = false;
+                    canvasGroup.blocksRaycasts = false;
+                }
             }
 
             // Publish event
@@ -314,9 +367,12 @@ namespace CoderGoHappy.Puzzle
                 Debug.Log($"[PuzzleBase] Max attempts reached - resetting puzzle");
                 ResetPuzzle();
             }
+            
 
             // Publish event
             eventManager?.Publish(GameEvents.PuzzleFailed, config.puzzleID);
+
+            ShowPuzzle();
         }
 
         /// <summary>

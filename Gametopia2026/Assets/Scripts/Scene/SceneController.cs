@@ -95,6 +95,10 @@ namespace CoderGoHappy.Scene
             
             StartCoroutine(TransitionWithFade(sceneName, fadeDuration));
         }
+
+        public void TransitionToScene(string sceneName){
+            TransitionToScene(sceneName, 0.5f);
+        }
         
         /// <summary>
         /// Coroutine for async scene loading
@@ -125,6 +129,8 @@ namespace CoderGoHappy.Scene
             
             // Wait for scene to fully load
             yield return asyncLoad;
+
+            
             
             // Update current scene name
             currentSceneName = sceneName;
@@ -134,6 +140,8 @@ namespace CoderGoHappy.Scene
             
             // Restore scene state if revisiting
             RestoreSceneState(currentSceneName);
+
+            
             
             // Publish transition complete event
             EventManager.Instance.Publish(GameEvents.SceneTransitionComplete, sceneName);
@@ -238,6 +246,11 @@ namespace CoderGoHappy.Scene
         /// <returns>SceneState object</returns>
         public SceneState GetSceneState(string sceneName)
         {
+            if (string.IsNullOrEmpty(sceneName))
+            {
+                sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            }
+            
             if (!sceneStates.ContainsKey(sceneName))
             {
                 sceneStates[sceneName] = new SceneState(sceneName);

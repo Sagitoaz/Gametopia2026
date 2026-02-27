@@ -150,6 +150,9 @@ namespace CoderGoHappy.Puzzle
             // Reset sequence slots
             UpdateSequenceDisplay();
 
+            // Force rebuild all LayoutGroups after frame delay (fixes slots being collapsed after SetActive)
+            StartCoroutine(ForceRebuildLayoutsDelayed());
+
             // Show description
             if (descriptionText != null)
             {
@@ -161,6 +164,32 @@ namespace CoderGoHappy.Puzzle
 
             // Enable buttons
             SetButtonsInteractable(true);
+        }
+
+        /// <summary>
+        /// Force rebuild all LayoutGroups in the puzzle UI hierarchy with delay
+        /// </summary>
+        private System.Collections.IEnumerator ForceRebuildLayoutsDelayed()
+        {
+            // Wait for end of frame so all GameObjects are fully active
+            yield return new WaitForEndOfFrame();
+            
+            // Rebuild all LayoutGroups in children
+            var layoutGroups = GetComponentsInChildren<UnityEngine.UI.LayoutGroup>(true);
+            foreach (var layout in layoutGroups)
+            {
+                if (layout != null && layout.gameObject.activeInHierarchy)
+                {
+                    layout.enabled = false;
+                    layout.enabled = true;
+                    UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(layout.GetComponent<RectTransform>());
+                }
+            }
+            
+            // Also rebuild Canvas
+            Canvas.ForceUpdateCanvases();
+            
+            Debug.Log("[ColorMatchPuzzle] LayoutGroups rebuilt");
         }
 
         #endregion
@@ -281,13 +310,21 @@ namespace CoderGoHappy.Puzzle
         private void UpdateSequenceDisplay()
         {
             if (sequenceSlots == null)
+            {
+                Debug.LogWarning("[ColorMatchPuzzle] sequenceSlots is NULL!");
                 return;
+            }
+
+            Debug.Log($"[ColorMatchPuzzle] UpdateSequenceDisplay: {sequenceSlots.Length} slots, {playerColorSequence.Count} selected");
 
             // Update each slot
             for (int i = 0; i < sequenceSlots.Length; i++)
             {
                 if (sequenceSlots[i] == null)
+                {
+                    Debug.LogWarning($"[ColorMatchPuzzle] sequenceSlots[{i}] is NULL!");
                     continue;
+                }
 
                 // If player has selected this index
                 if (i < playerColorSequence.Count)
@@ -295,6 +332,7 @@ namespace CoderGoHappy.Puzzle
                     string colorName = playerColorSequence[i];
                     Color color = GetColorFromName(colorName);
                     sequenceSlots[i].color = color;
+                    Debug.Log($"[ColorMatchPuzzle] Slot[{i}] set to {colorName} = {color}");
                 }
                 else
                 {
@@ -308,6 +346,12 @@ namespace CoderGoHappy.Puzzle
         /// </summary>
         private Color GetColorFromName(string colorName)
         {
+            if (colorNames == null || colors == null)
+            {
+                Debug.LogError("[ColorMatchPuzzle] colorNames or colors array is NULL!");
+                return Color.white;
+            }
+
             for (int i = 0; i < colorNames.Length; i++)
             {
                 if (colorNames[i].Equals(colorName, System.StringComparison.OrdinalIgnoreCase))
@@ -316,9 +360,14 @@ namespace CoderGoHappy.Puzzle
                     {
                         return colors[i];
                     }
+                    else
+                    {
+                        Debug.LogWarning($"[ColorMatchPuzzle] Color index {i} out of range for colors array (length={colors.Length})");
+                    }
                 }
             }
 
+            Debug.LogWarning($"[ColorMatchPuzzle] Color name '{colorName}' not found in colorNames array!");
             return Color.white; // Default
         }
 
@@ -364,16 +413,25 @@ namespace CoderGoHappy.Puzzle
             {
                 if (slot != null && slot.color != emptySlotColor)
                 {
+                    // Save original position before shaking (LayoutGroup manages position)
+                    Vector3 originalPosition = slot.transform.localPosition;
+                    
                     // Shake the Transform instead of Image
                     slot.transform.DOShakePosition(0.5f, strength: 5f, vibrato: 20)
                         .OnComplete(() => {
                             if (slot != null)
                             {
-                                slot.transform.localPosition = Vector3.zero;
+                                // Restore to original position (not Vector3.zero which breaks LayoutGroup)
+                                slot.transform.localPosition = originalPosition;
                             }
                         });
                 }
             }
+            
+            // Force rebuild LayoutGroup after shake animation completes
+            DOVirtual.DelayedCall(0.6f, () => {
+                StartCoroutine(ForceRebuildLayoutsDelayed());
+            });
         }
 
         /// <summary>

@@ -79,6 +79,9 @@ namespace CoderGoHappy.Core
             instance = this;
             DontDestroyOnLoad(gameObject);
             
+            // Subscribe to Unity's scene loaded event (works for ALL scene loads)
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            
             Debug.Log("[GameManager] Awake - Singleton established");
         }
         
@@ -86,6 +89,9 @@ namespace CoderGoHappy.Core
         {
             InitializeSystems();
             LoadGameState();
+            
+            // Subscribe to scene transition complete event (for SceneController transitions)
+            EventManager.Instance.Subscribe(GameEvents.SceneTransitionComplete, OnSceneTransitionComplete);
             
             Debug.Log("[GameManager] All systems initialized successfully");
             TestStart();
@@ -97,8 +103,35 @@ namespace CoderGoHappy.Core
             SceneManager.LoadScene(1);
         }
         
+        /// <summary>
+        /// Called when any scene is loaded (Unity built-in event)
+        /// </summary>
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
+        {
+            Debug.Log($"[GameManager] Scene loaded: {scene.name}, re-initializing systems...");
+            InitializeSystems();
+        }
+        
+        /// <summary>
+        /// Called when scene transition completes (SceneController event)
+        /// </summary>
+        private void OnSceneTransitionComplete(object sceneName)
+        {
+            Debug.Log($"[GameManager] Scene transition complete: {sceneName}");
+            // InitializeSystems already called by OnSceneLoaded, no need to call again
+        }
+        
         private void OnDestroy()
         {
+            // Unsubscribe from Unity's scene loaded event
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            
+            // Unsubscribe from custom events
+            if (EventManager.Instance != null)
+            {
+                EventManager.Instance.Unsubscribe(GameEvents.SceneTransitionComplete, OnSceneTransitionComplete);
+            }
+            
             // Auto-save on quit
             SaveGame();
         }
@@ -116,7 +149,7 @@ namespace CoderGoHappy.Core
         /// <summary>
         /// Initialize all game systems in correct dependency order
         /// </summary>
-        private void InitializeSystems()
+        public void InitializeSystems()
         {
             Debug.Log("[GameManager] Initializing systems...");
             
@@ -290,6 +323,8 @@ namespace CoderGoHappy.Core
         /// <summary>
         /// Delete save data (new game)
         /// </summary>
+        /// 
+        
         public void DeleteSaveData()
         {
             PlayerPrefs.DeleteKey(SAVE_KEY);
@@ -297,6 +332,13 @@ namespace CoderGoHappy.Core
             gameState.Reset();
             
             Debug.Log("[GameManager] Save data deleted, game state reset");
+        }
+
+        [ContextMenu("XOA DATA")]
+
+        public void DeleteAllData(){
+            PlayerPrefs.DeleteAll();
+            gameState.Reset();
         }
         
         #endregion
