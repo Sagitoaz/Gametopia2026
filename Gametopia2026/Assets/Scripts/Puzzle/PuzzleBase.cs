@@ -372,7 +372,7 @@ namespace CoderGoHappy.Puzzle
             // Publish event
             eventManager?.Publish(GameEvents.PuzzleFailed, config.puzzleID);
 
-            ShowPuzzle();
+            
         }
 
         /// <summary>

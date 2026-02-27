@@ -70,6 +70,31 @@ namespace CoderGoHappy.Puzzle
         [Tooltip("Color for empty sequence slots")]
         public Color emptySlotColor = new Color(0.5f, 0.5f, 0.5f, 0.3f);
 
+        [Header("Notification Settings")]
+        [Tooltip("Panel to show notifications (requires CanvasGroup)")]
+        public RectTransform notificationPanel;
+
+        [Tooltip("Text to display notification message")]
+        public TextMeshProUGUI notificationText;
+
+        [Tooltip("Icon for correct answer")]
+        public Image correctIcon;
+
+        [Tooltip("Icon for wrong answer")]
+        public Image wrongIcon;
+
+        [Tooltip("Color for correct notification background")]
+        public Color correctColor = new Color(0.2f, 0.8f, 0.2f, 1f);
+
+        [Tooltip("Color for wrong notification background")]
+        public Color wrongColor = new Color(0.9f, 0.2f, 0.2f, 1f);
+
+        [Tooltip("Duration to show notification")]
+        public float notificationDuration = 1.5f;
+
+        private CanvasGroup notificationCanvasGroup;
+        private Image notificationBackground;
+
         #endregion
 
         #region State
@@ -83,6 +108,16 @@ namespace CoderGoHappy.Puzzle
         /// Correct solution sequence (parsed from config)
         /// </summary>
         private string[] solutionSequence;
+
+        /// <summary>
+        /// Track delayed call for clearing sequence after fail (to prevent race conditions)
+        /// </summary>
+        private Tween clearSequenceTween;
+
+        /// <summary>
+        /// Track delayed call for layout rebuild
+        /// </summary>
+        private Tween layoutRebuildTween;
 
         #endregion
 
@@ -129,10 +164,21 @@ namespace CoderGoHappy.Puzzle
 
             // Initialize sequence slots
             InitializeSequenceSlots();
+
+            // Initialize notification system
+            InitializeNotification();
         }
 
         protected override void SetupPuzzleUI()
         {
+            // Kill any pending delayed calls from previous failure
+            // (base.OnPuzzleFailed -> ShowPuzzle -> SetupPuzzleUI path)
+            clearSequenceTween?.Kill();
+            clearSequenceTween = null;
+            layoutRebuildTween?.Kill();
+            layoutRebuildTween = null;
+            KillAllSlotTweens();
+
             // Parse solution from config
             solutionSequence = config.GetColorMatchSolution();
 
@@ -207,6 +253,12 @@ namespace CoderGoHappy.Puzzle
             if (colorIndex < 0 || colorIndex >= colorNames.Length)
                 return;
 
+            // Cancel any pending clear from previous failure to prevent wiping new input
+            clearSequenceTween?.Kill();
+            clearSequenceTween = null;
+            layoutRebuildTween?.Kill();
+            layoutRebuildTween = null;
+
             string colorName = colorNames[colorIndex];
             Debug.Log($"[ColorMatchPuzzle] Color selected: {colorName}");
 
@@ -277,6 +329,11 @@ namespace CoderGoHappy.Puzzle
 
         protected override void ResetPuzzleState()
         {
+            // Kill any pending delayed calls
+            clearSequenceTween?.Kill();
+            layoutRebuildTween?.Kill();
+            KillAllSlotTweens();
+            
             playerColorSequence.Clear();
             UpdateSequenceDisplay();
             UpdateProgressText();
@@ -413,6 +470,9 @@ namespace CoderGoHappy.Puzzle
             {
                 if (slot != null && slot.color != emptySlotColor)
                 {
+                    // Kill any existing tween on this slot first
+                    slot.transform.DOKill();
+                    
                     // Save original position before shaking (LayoutGroup manages position)
                     Vector3 originalPosition = slot.transform.localPosition;
                     
@@ -428,8 +488,11 @@ namespace CoderGoHappy.Puzzle
                 }
             }
             
+            // Kill any existing layout rebuild delayed call
+            layoutRebuildTween?.Kill();
+            
             // Force rebuild LayoutGroup after shake animation completes
-            DOVirtual.DelayedCall(0.6f, () => {
+            layoutRebuildTween = DOVirtual.DelayedCall(0.6f, () => {
                 StartCoroutine(ForceRebuildLayoutsDelayed());
             });
         }
@@ -473,14 +536,24 @@ namespace CoderGoHappy.Puzzle
 
         protected override void OnPuzzleFailed()
         {
+            // Kill any previous delayed calls to prevent race conditions
+            clearSequenceTween?.Kill();
+            layoutRebuildTween?.Kill();
+            
+            // Kill any existing slot tweens
+            KillAllSlotTweens();
+
             // Flash error feedback
             FlashErrorFeedback();
 
             // Disable buttons temporarily
             SetButtonsInteractable(false);
 
-            // Clear sequence after delay
-            DOVirtual.DelayedCall(1f, () => {
+            // Show wrong notification
+            ShowNotification(false, "Sai rồi! Thử lại nhé");
+
+            // Clear sequence after notification
+            clearSequenceTween = DOVirtual.DelayedCall(notificationDuration + 0.5f, () => {
                 playerColorSequence.Clear();
                 UpdateSequenceDisplay();
                 UpdateProgressText();
@@ -490,10 +563,30 @@ namespace CoderGoHappy.Puzzle
             base.OnPuzzleFailed();
         }
 
+        /// <summary>
+        /// Kill all active tweens on sequence slots
+        /// </summary>
+        private void KillAllSlotTweens()
+        {
+            if (sequenceSlots == null) return;
+            
+            foreach (Image slot in sequenceSlots)
+            {
+                if (slot != null)
+                {
+                    slot.transform.DOKill();
+                    slot.DOKill();
+                }
+            }
+        }
+
         protected override void OnPuzzleSolved()
         {
             // Disable buttons
             SetButtonsInteractable(false);
+
+            // Show correct notification
+            ShowNotification(true, "Chính xác! Tuyệt vời!");
 
             // Celebrate animation (pulse all correct slots)
             if (sequenceSlots != null)
@@ -510,6 +603,112 @@ namespace CoderGoHappy.Puzzle
             }
 
             base.OnPuzzleSolved();
+        }
+
+        #endregion
+
+        #region Notification System
+
+        /// <summary>
+        /// Initialize notification panel
+        /// </summary>
+        private void InitializeNotification()
+        {
+            if (notificationPanel != null)
+            {
+                // Get or add CanvasGroup
+                notificationCanvasGroup = notificationPanel.GetComponent<CanvasGroup>();
+                if (notificationCanvasGroup == null)
+                {
+                    notificationCanvasGroup = notificationPanel.gameObject.AddComponent<CanvasGroup>();
+                }
+
+                // Get background Image
+                notificationBackground = notificationPanel.GetComponent<Image>();
+
+                // Hide initially
+                notificationCanvasGroup.alpha = 0f;
+                notificationPanel.localScale = Vector3.zero;
+                notificationPanel.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// Show notification with animation
+        /// </summary>
+        /// <param name="isCorrect">True for correct, false for wrong</param>
+        /// <param name="message">Message to display</param>
+        private void ShowNotification(bool isCorrect, string message)
+        {
+            if (notificationPanel == null)
+            {
+                Debug.LogWarning("[ColorMatchPuzzle] Notification panel not assigned!");
+                return;
+            }
+
+            // Kill any existing notification tweens
+            notificationPanel.DOKill();
+            if (notificationCanvasGroup != null)
+                notificationCanvasGroup.DOKill();
+
+            // Setup notification content
+            if (notificationText != null)
+            {
+                notificationText.text = message;
+            }
+
+            // Set background color
+            if (notificationBackground != null)
+            {
+                notificationBackground.color = isCorrect ? correctColor : wrongColor;
+            }
+
+            // Show/hide icons
+            if (correctIcon != null)
+            {
+                correctIcon.gameObject.SetActive(isCorrect);
+            }
+            if (wrongIcon != null)
+            {
+                wrongIcon.gameObject.SetActive(!isCorrect);
+            }
+
+            // Activate panel
+            notificationPanel.gameObject.SetActive(true);
+
+            // Create animation sequence
+            Sequence showSequence = DOTween.Sequence();
+
+            // Pop-in animation
+            showSequence.Append(notificationPanel.DOScale(Vector3.one * 1.1f, 0.3f).SetEase(Ease.OutBack));
+            showSequence.Join(notificationCanvasGroup.DOFade(1f, 0.2f));
+            showSequence.Append(notificationPanel.DOScale(Vector3.one, 0.1f).SetEase(Ease.InOutQuad));
+
+            // Add shake for wrong answer
+            if (!isCorrect)
+            {
+                showSequence.Append(notificationPanel.DOShakeRotation(0.3f, new Vector3(0, 0, 10), 10, 90));
+            }
+            else
+            {
+                // Pulse effect for correct
+                showSequence.Append(notificationPanel.DOScale(Vector3.one * 1.05f, 0.15f).SetEase(Ease.InOutQuad).SetLoops(2, LoopType.Yoyo));
+            }
+
+            // Wait
+            showSequence.AppendInterval(notificationDuration - 0.8f);
+
+            // Fade out animation
+            showSequence.Append(notificationPanel.DOScale(Vector3.one * 0.8f, 0.2f).SetEase(Ease.InBack));
+            showSequence.Join(notificationCanvasGroup.DOFade(0f, 0.2f));
+
+            // Hide panel when done
+            showSequence.OnComplete(() => {
+                notificationPanel.gameObject.SetActive(false);
+                notificationPanel.localScale = Vector3.zero;
+            });
+
+            showSequence.Play();
         }
 
         #endregion
