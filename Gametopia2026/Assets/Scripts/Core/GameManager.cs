@@ -87,6 +87,12 @@ namespace CoderGoHappy.Core
         
         private void Start()
         {
+            #if UNITY_EDITOR
+            // In Editor, always start fresh - delete any saved state from previous play sessions
+            PlayerPrefs.DeleteKey(SAVE_KEY);
+            Debug.Log("[GameManager] EDITOR: Save data cleared for fresh test session");
+            #endif
+
             InitializeSystems();
             LoadGameState();
             

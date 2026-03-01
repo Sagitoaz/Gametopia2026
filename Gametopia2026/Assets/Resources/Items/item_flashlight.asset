@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e046c8fae6a202e42aa6d74044879663, type: 3}
+  m_Name: item_flashlight
+  m_EditorClassIdentifier: Assembly-CSharp::CoderGoHappy.Data.ItemData
+  itemID: item_flashlight
+  itemName: "\u0110\xE8n Flash"
+  description: "\u0110\xE8n pin s\u1EA1c USB s\xE1ng r\u1EF1c. D\xF9ng \u0111\u1EC3
+    soi nh\u1EEFng n\u01A1i thi\u1EBFu \xE1nh s\xE1ng."
+  sprite: {fileID: 5799876250080153681, guid: 9df1fb52cacdf4e4f85fcbd2f8bc6edd, type: 3}
+  worldSprite: {fileID: 0}
+  isMiniBug: 0
+  isUsable: 1

@@ -1,0 +1,340 @@
+{
+  "_meta": {
+    "project": "Coder Go Happy",
+    "level": "Level 1 — The Legacy System",
+    "art_style": "2D cartoon, flat illustration, bold outlines, vibrant colors, office/tech theme, clean and friendly look inspired by Monkey GO Happy",
+    "base_style_suffix": "2D cartoon game art, flat style, bold dark outline, vibrant saturated colors, white or transparent background, no shading gradients, clean vector-like illustration, suitable for point-and-click puzzle game.",
+    "format_note": "All items/characters/objects: PNG with transparent background. Backgrounds: JPG or PNG, 1920x1080. Items: 256x256. Characters: 512x512. MiniBugs: 128x128. UI: as noted.",
+    "usage": "Feed each 'prompt' field directly to Gemini. Save output with the 'filename' as reference."
+  },
+
+  "backgrounds": [
+    {
+      "id": "bg_scene1",
+      "filename": "bg_level1_scene1_server_hallway",
+      "category": "background",
+      "size": "1920x1080",
+      "transparent": false,
+      "prompt": "2D cartoon game background, 1920x1080 horizontal, a dimly lit dusty server room hallway in an old IT facility, rows of tall black server racks with blinking orange and red LEDs, tangled ethernet cables hanging from ceiling, worn concrete floor with dust, flickering overhead fluorescent lights creating moody shadows, a dark corner on the right side where nothing is visible, emergency exit sign glowing red on far wall, old faded posters of error messages on wall, slightly grungy and abandoned atmosphere, flat illustration style, bold outlines, rich dark blues and grays with orange accent lights, no characters, game scene layout with clickable areas visible."
+    },
+    {
+      "id": "bg_scene2",
+      "filename": "bg_level1_scene2_tech_corner",
+      "category": "background",
+      "size": "1920x1080",
+      "transparent": false,
+      "prompt": "2D cartoon game background, 1920x1080 horizontal, a cluttered tech corner inside an old server room, a worn wooden workbench with an old beige desktop PC tower (1990s style, boxy with floppy drive), CRT monitor showing green terminal text, mechanical keyboard, scattered screwdrivers and tools, sticky notes with code symbols ('&&', '||', '!') pinned to corkboard on wall, tangled cables everywhere, coffee mug with bugs drawn on it next to keyboard, dim yellow desk lamp illuminating the area, shelves of old floppy disks and manuals behind, dusty and nostalgic office atmosphere, flat cartoon illustration, bold outlines, warm amber and olive tones."
+    },
+    {
+      "id": "bg_scene3",
+      "filename": "bg_level1_scene3_central_control",
+      "category": "background",
+      "size": "1920x1080",
+      "transparent": false,
+      "prompt": "2D cartoon game background, 1920x1080 horizontal, a central electrical control room in an old server facility, large gray metal electrical cabinet on the left with a card reader slot panel (glowing red), enormous black mainframe computer on the right wall with a dark screen showing 'ACCESS DENIED' in red text, blinking indicator lights in rows of green and red, thick power cables on the floor, a single harsh ceiling spotlight illuminating the mainframe, industrial metal walls with warning stickers and caution tape, serious and mysterious atmosphere, flat cartoon style, bold outlines, dark cool gray palette with red and green accent lights."
+    }
+  ],
+
+  "characters": [
+    {
+      "id": "char_coder_sad",
+      "filename": "char_coder_sad",
+      "category": "character",
+      "size": "512x512",
+      "transparent": true,
+      "prompt": "2D cartoon character on transparent background, a young male software developer in casual office clothes, slightly chubby friendly face, messy dark hair, wearing a wrinkled hoodie and jeans, sitting posture, extremely stressed and sad expression: tears streaming down face, eyes bloodshot, holding head with both hands, dark circles under eyes, sweat drops, small floating red bug icons around him, exaggerated cartoon sadness, chibi-like proportions (big head small body), flat illustration, bold outlines, 512x512, transparent background PNG."
+    },
+    {
+      "id": "char_coder_happy",
+      "filename": "char_coder_happy",
+      "category": "character",
+      "size": "512x512",
+      "transparent": true,
+      "prompt": "2D cartoon character on transparent background, same young male software developer from before, now extremely happy and relieved, standing/jumping pose, wearing cool black sunglasses, big wide grin showing teeth, fists pumped in the air in celebration, confetti and stars floating around him, small green checkmark and smiley code symbols around him, glowing aura of happiness, same hoodie and jeans but now looks fresh and energetic, chibi-like proportions (big head small body), flat illustration, bold outlines, 512x512, transparent background PNG."
+    }
+  ],
+
+  "items": [
+    {
+      "id": "item_flashlight",
+      "filename": "item_flashlight",
+      "category": "item",
+      "size": "256x256",
+      "transparent": true,
+      "prompt": "2D cartoon game inventory item, a handheld flashlight, classic black cylinder shape with silver metallic head, yellow lens with a bright warm glow beam emanating from the front, small power button on side, slightly worn and scratched texture, cartoon flat style, bold dark outline, centered on transparent background, 256x256, no text, clean and recognizable silhouette."
+    },
+    {
+      "id": "item_screwdriver",
+      "filename": "item_screwdriver",
+      "category": "item",
+      "size": "256x256",
+      "transparent": true,
+      "prompt": "2D cartoon game inventory item, a Phillips head screwdriver, bright red and yellow handle, silver metallic shaft, cross-shaped tip at the bottom, slightly angled 45 degrees for visibility, cartoon flat style, bold dark outline, centered on transparent background, 256x256, no text, clean and recognizable silhouette."
+    },
+    {
+      "id": "item_usb_keycard",
+      "filename": "item_usb_keycard",
+      "category": "item",
+      "size": "256x256",
+      "transparent": true,
+      "prompt": "2D cartoon game inventory item, a tech USB access keycard, rectangular plastic card shape like a hotel keycard but with a USB connector at one end, dark navy blue card surface with glowing cyan holographic stripe, small chip embedded, USB-A connector metallic tip at bottom, 'ADMIN' text on card in digital font, small LED light on edge, futuristic yet simple design, cartoon flat style, bold dark outline, centered on transparent background, 256x256."
+    }
+  ],
+
+  "minibugs": [
+    {
+      "id": "minibug_01",
+      "filename": "item_minibug_01",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature, cute insect-like character, bright lime green color, large round black eyes with white shine, 6 small legs, antenna on head, walking forward pose, cheeky grin, simple flat cartoon style, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_02",
+      "filename": "item_minibug_02",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature, cute insect-like character, bright lime green, large surprised round eyes, 6 legs, curled up round body like a pill bug, looking upward nervously, simple flat cartoon, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_03",
+      "filename": "item_minibug_03",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature, cute insect-like character, lime green body, sleepy half-closed eyes, hanging upside down from a cable wire, small claws gripping wire, lazy expression, flat cartoon style, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_04",
+      "filename": "item_minibug_04",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature, cute insect-like character, lime green, wide excited eyes, arms raised in celebration, jumping pose, small wings that look too tiny to fly, flat cartoon style, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_05",
+      "filename": "item_minibug_05",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature peeking from inside a coffee mug, only top half of bug visible over rim, big curious eyes, one antenna sticking up, lime green color, flat cartoon style, bold black outline, mug is simple white cylinder, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_06",
+      "filename": "item_minibug_06",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature crawling under a keyboard key, lime green body squished flat to hide, peeking eyes visible, sneaky expression, flat cartoon style, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_07",
+      "filename": "item_minibug_07",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature, sitting on top of a CRT monitor screen, lime green, arms crossed confidently, smug triangular grin, one leg dangling off edge, flat cartoon style, bold black outline, monitor top is simple flat surface, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_08",
+      "filename": "item_minibug_08",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature peeking from behind a large computer screen, only half body visible on side, one eye peeking around edge, scared expression, lime green, flat cartoon style, bold black outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_09",
+      "filename": "item_minibug_09",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature stuck inside a power outlet socket hole, lime green body wedged in square socket, embarrassed blushing face, one leg kicking free, simple flat cartoon style, bold black outline, white socket plate visible, 128x128, transparent background PNG."
+    },
+    {
+      "id": "minibug_10",
+      "filename": "item_minibug_10",
+      "category": "minibug",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon tiny green software bug creature balancing on top of a server rack tower, arms out like tightrope walking, worried expression, lime green, flat cartoon style, bold black outline, simple dark server rack top surface, 128x128, transparent background PNG."
+    }
+  ],
+
+  "interactive_objects": [
+    {
+      "id": "obj_server_rack",
+      "filename": "obj_server_rack",
+      "category": "world_object",
+      "size": "512x768",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a tall server rack unit, dark black metal frame, rows of server blade units with various blinking red and orange LED lights, cable management holes on sides, front panel with ventilation grills, dusty and old looking, some screws visible, flat illustration style, bold outlines, 512x768 portrait, transparent background PNG."
+    },
+    {
+      "id": "obj_server_rack_glow",
+      "filename": "obj_server_rack_glow",
+      "category": "world_object",
+      "size": "512x768",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, same tall server rack unit but with a bright flashlight beam illuminating it from the side, revealing a sticky paper note posted inside with numbers '1-3-2' written in red marker, the light creates a warm yellow glow cone effect, other server details now clearly visible, flat illustration style, bold outlines, 512x768 portrait, transparent background PNG."
+    },
+    {
+      "id": "obj_old_pc_closed",
+      "filename": "obj_old_pc_closed",
+      "category": "world_object",
+      "size": "384x512",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a boxy old 1990s beige desktop PC tower, worn and yellowed plastic casing, floppy drive slot, CD drive, power button, ventilation holes, a few Phillips screws visible on the back panel side, dusty and scratched surface, flat cartoon style, bold outlines, 384x512 portrait orientation, transparent background PNG."
+    },
+    {
+      "id": "obj_old_pc_open",
+      "filename": "obj_old_pc_open",
+      "category": "world_object",
+      "size": "384x512",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, same boxy old beige PC tower but side panel is removed revealing interior, visible motherboard, colorful capacitors, empty GPU slot with a glowing USB keycard sitting inside waiting to be picked up, cartoonishly exaggerated internals, warm orange internal glow, flat cartoon style, bold outlines, 384x512 portrait, transparent background PNG."
+    },
+    {
+      "id": "obj_terminal",
+      "filename": "obj_terminal",
+      "category": "world_object",
+      "size": "512x512",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a retro computer terminal on a desk, small CRT monitor showing a green-on-black command line screen with blinking cursor, old chunky keyboard below with 3 large square buttons labeled '&&', '||', '!' in bright colors (yellow, blue, red), cables coming out the back, flat cartoon style, bold outlines, 512x512, transparent background PNG."
+    },
+    {
+      "id": "obj_card_reader",
+      "filename": "obj_card_reader",
+      "category": "world_object",
+      "size": "256x384",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a wall-mounted card reader panel, rectangular dark gray plastic box, vertical slot in center for inserting keycard, circular LED indicator currently glowing red (locked), small keypad with numbers below slot, mounted on gray wall panel, industrial tech style, flat cartoon illustration, bold outlines, 256x384, transparent background PNG."
+    },
+    {
+      "id": "obj_card_reader_accepted",
+      "filename": "obj_card_reader_accepted",
+      "category": "world_object",
+      "size": "256x384",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, same wall-mounted card reader panel, LED indicator now glowing bright green (accepted), small screen showing green checkmark and 'OK', USB keycard halfway inserted in slot, flat cartoon illustration, bold outlines, 256x384, transparent background PNG."
+    },
+    {
+      "id": "obj_mainframe_locked",
+      "filename": "obj_mainframe_locked",
+      "category": "world_object",
+      "size": "640x512",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a large mainframe computer console, imposing black rectangular unit with a big dark screen displaying 'ACCESS DENIED' in red blinking text, number keypad on right side with 10 keys, indicator lights across top panel showing all red, serious imposing design, slight glow from screen, flat cartoon style, bold outlines, 640x512 landscape, transparent background PNG."
+    },
+    {
+      "id": "obj_mainframe_unlocked",
+      "filename": "obj_mainframe_unlocked",
+      "category": "world_object",
+      "size": "640x512",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, same large mainframe computer console, screen now showing 'ACCESS GRANTED' in bright green text with celebration pixels/sparkles, indicator lights across top now all green, a joyful happy face ASCII art on screen (':D'), flat cartoon style, bold outlines, 640x512 landscape, transparent background PNG."
+    },
+    {
+      "id": "obj_code_note",
+      "filename": "obj_code_note",
+      "category": "world_object",
+      "size": "256x320",
+      "transparent": true,
+      "prompt": "2D cartoon game world object, a crumpled sticky note or printed paper tacked to a wall, bright yellow paper, large handwritten text in red marker reading '1337', urgency marks and exclamation around the number, slightly rotated angle, paper dog-eared corners, flat cartoon style, bold outlines, 256x320, transparent background PNG."
+    },
+    {
+      "id": "obj_nav_arrow_right",
+      "filename": "obj_nav_arrow_right",
+      "category": "world_object",
+      "size": "128x256",
+      "transparent": true,
+      "prompt": "2D cartoon game navigation arrow, pointing right, chunky rounded arrow shape, bright yellow with dark outline, subtle glow, simple and obvious to click, idle bouncing animation frame (slightly tilted right), flat cartoon style, 128x256, transparent background PNG."
+    },
+    {
+      "id": "obj_nav_arrow_left",
+      "filename": "obj_nav_arrow_left",
+      "category": "world_object",
+      "size": "128x256",
+      "transparent": true,
+      "prompt": "2D cartoon game navigation arrow, pointing left, chunky rounded arrow shape, bright yellow with dark outline, subtle glow, simple and obvious to click, flat cartoon style, 128x256, transparent background PNG."
+    }
+  ],
+
+  "ui": [
+    {
+      "id": "ui_inventory_slot",
+      "filename": "ui_inventory_slot",
+      "category": "ui",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, a single inventory slot frame, square shape with slightly rounded corners, dark gray metallic frame with subtle inner shadow, empty center showing faint grid texture, small indent drop shadow effect, tech/gadget aesthetic matching office game theme, flat illustration, bold outline, 128x128, transparent background PNG."
+    },
+    {
+      "id": "ui_inventory_slot_selected",
+      "filename": "ui_inventory_slot_selected",
+      "category": "ui",
+      "size": "128x128",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, same inventory slot frame but in selected/highlighted state, bright cyan or yellow glowing border, inner glow effect, slightly larger scale feel, flat illustration, 128x128, transparent background PNG."
+    },
+    {
+      "id": "ui_inventory_panel_bg",
+      "filename": "ui_inventory_panel_bg",
+      "category": "ui",
+      "size": "800x128",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, a horizontal inventory bar background strip, dark slate gray with subtle metallic texture, rounded left and right ends, thin top border highlight, slight inner shadow at bottom, clean and minimal, tech game aesthetic, 800x128, transparent background PNG."
+    },
+    {
+      "id": "ui_bug_icon",
+      "filename": "ui_bug_icon",
+      "category": "ui",
+      "size": "64x64",
+      "transparent": true,
+      "prompt": "2D cartoon UI icon, a tiny cute green software bug face, front view, two large round black eyes, small antenna on top, simple rounded body, bright lime green color, thick bold black outline, designed to be readable at small size, 64x64, transparent background PNG."
+    },
+    {
+      "id": "ui_dialogue_panel_bg",
+      "filename": "ui_dialogue_panel_bg",
+      "category": "ui",
+      "size": "700x300",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, a dialogue popup panel background, dark navy blue with slight transparency look, rounded corners radius 24px, thin bright cyan border line, subtle inner glow, small 'terminal' aesthetic with corner bracket details '[ ]', clean and readable, flat design no harsh gradients, 700x300, transparent background PNG."
+    },
+    {
+      "id": "ui_btn_ok",
+      "filename": "ui_btn_ok",
+      "category": "ui",
+      "size": "180x64",
+      "transparent": true,
+      "prompt": "2D cartoon game UI button, an OK confirm button, rounded rectangle shape, bright green color, 'OK' text in bold white, slight 3D pressed shadow at bottom, tech game style, flat illustration, bold outline, 180x64, transparent background PNG."
+    },
+    {
+      "id": "ui_puzzle_button_normal",
+      "filename": "ui_puzzle_button_normal",
+      "category": "ui",
+      "size": "120x120",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, a single puzzle input button in normal state, square shape with rounded corners, dark gray metallic surface, subtle embossed look, ready to be pressed, plain no label (label added in engine), clean game button style, flat illustration, bold outline, 120x120, transparent background PNG."
+    },
+    {
+      "id": "ui_puzzle_button_pressed",
+      "filename": "ui_puzzle_button_pressed",
+      "category": "ui",
+      "size": "120x120",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, same puzzle button in pressed/active state, glowing bright yellow inner light, slightly indented press effect, yellow outer glow ring, 120x120, transparent background PNG."
+    },
+    {
+      "id": "ui_puzzle_button_correct",
+      "filename": "ui_puzzle_button_correct",
+      "category": "ui",
+      "size": "120x120",
+      "transparent": true,
+      "prompt": "2D cartoon game UI element, same puzzle button in correct/solved state, bright green glow, checkmark overlay hint, celebratory sparkle particles around edges, 120x120, transparent background PNG."
+    }
+  ]
+}

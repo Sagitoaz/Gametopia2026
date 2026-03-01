@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 using CoderGoHappy.Events;
 using CoderGoHappy.Core;
@@ -29,6 +30,26 @@ namespace CoderGoHappy.Puzzle
         /// </summary>
         [Tooltip("UI GameObject containing puzzle interface")]
         public GameObject puzzleUI;
+
+        /// <summary>
+        /// Optional X/close button inside the puzzle panel
+        /// </summary>
+        [Header("Close Options")]
+        [Tooltip("Optional X/Close button inside the puzzle panel - clicking closes the puzzle")]
+        public Button closeButton;
+
+        /// <summary>
+        /// Full-screen transparent Button that sits BEHIND the puzzle panel.
+        /// Clicking anywhere outside the panel area triggers HidePuzzle().
+        /// </summary>
+        [Tooltip("Full-screen transparent button behind the panel (click outside to close)")]
+        public Button backgroundOverlay;
+
+        /// <summary>
+        /// Allow pressing Escape to close puzzle without solving it
+        /// </summary>
+        [Tooltip("Allow Escape key to close puzzle panel")]
+        public bool allowEscapeToClose = true;
 
         #endregion
 
@@ -107,6 +128,14 @@ namespace CoderGoHappy.Puzzle
 
         protected virtual void Update()
         {
+            // Close puzzle on Escape key (only when active and not already solved)
+            if (isActive && !isSolved && allowEscapeToClose && Input.GetKeyDown(KeyCode.Escape))
+            {
+                Debug.Log($"[PuzzleBase] Escape pressed - closing puzzle: {config?.puzzleName}");
+                HidePuzzle();
+                return;
+            }
+
             // Update timer if active
             if (timerActive && config != null && config.timeLimit > 0)
             {
@@ -188,6 +217,21 @@ namespace CoderGoHappy.Puzzle
             // Let concrete puzzle set up its specific UI
             SetupPuzzleUI();
 
+            // Wire up background overlay (click outside to close)
+            if (backgroundOverlay != null)
+            {
+                backgroundOverlay.gameObject.SetActive(true);
+                backgroundOverlay.onClick.RemoveAllListeners();
+                backgroundOverlay.onClick.AddListener(HidePuzzle);
+            }
+
+            // Wire up explicit close/X button
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+                closeButton.onClick.AddListener(HidePuzzle);
+            }
+
             // Note: Don't publish ShowPuzzle event here - it would cause recursion
             // with PuzzleSystem.OnShowPuzzleEvent
         }
@@ -219,6 +263,12 @@ namespace CoderGoHappy.Puzzle
                     canvasGroup.interactable = false;
                     canvasGroup.blocksRaycasts = false;
                 }
+            }
+
+            // Hide background overlay
+            if (backgroundOverlay != null)
+            {
+                backgroundOverlay.gameObject.SetActive(false);
             }
 
             // Publish event

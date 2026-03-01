@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e046c8fae6a202e42aa6d74044879663, type: 3}
+  m_Name: item_usb_keycard
+  m_EditorClassIdentifier: Assembly-CSharp::CoderGoHappy.Data.ItemData
+  itemID: item_usb_keycard
+  itemName: "Th\u1EBB USB key"
+  description: "Th\u1EBB x\xE1c th\u1EF1c k\u1EF9 thu\u1EADt s\u1ED1 c\u1EA5p ADMIN.
+    D\xF9ng \u0111\u1EC3 m\u1EDF kh\xF3a h\u1EC7 th\u1ED1ng b\u1EA3o m\u1EADt."
+  sprite: {fileID: -9155416444660070225, guid: d6e00d18f323dd7448ba0686be75c6e1, type: 3}
+  worldSprite: {fileID: 0}
+  isMiniBug: 0
+  isUsable: 1

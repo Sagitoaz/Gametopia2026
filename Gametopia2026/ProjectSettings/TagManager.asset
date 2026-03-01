@@ -16,9 +16,9 @@ TagManager:
   - Hotspot
   - Item
   - Background
-  - 
-  - 
-  - 
+  - Object
+  - Character
+  - Effect
   - 
   - 
   - 
@@ -40,6 +40,21 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 2172879129
+    locked: 0
+  - name: Object
+    uniqueID: 790853377
+    locked: 0
+  - name: Character
+    uniqueID: 3344496463
+    locked: 0
+  - name: Effect
+    uniqueID: 2914183349
+    locked: 0
+  - name: UI
+    uniqueID: 3550310195
     locked: 0
   m_RenderingLayers:
   - Default

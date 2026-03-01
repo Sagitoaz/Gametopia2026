@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e046c8fae6a202e42aa6d74044879663, type: 3}
+  m_Name: minibug
+  m_EditorClassIdentifier: Assembly-CSharp::CoderGoHappy.Data.ItemData
+  itemID: minibug
+  itemName: Bug
+  description: "M\u1ED9t con b\u1ECD ph\u1EA7n m\u1EC1m \u0111ang \u1EA9n tr\u1ED1n!"
+  sprite: {fileID: -2116946835787012222, guid: 30c281fdebe199547a226c5bb3570f22, type: 3}
+  worldSprite: {fileID: 0}
+  isMiniBug: 0
+  isUsable: 1

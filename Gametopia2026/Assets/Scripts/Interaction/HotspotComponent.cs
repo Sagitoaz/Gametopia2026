@@ -74,6 +74,13 @@ namespace CoderGoHappy.Interaction
         [SerializeField] private string successEventName;
         
         /// <summary>
+        /// Consume (remove) item from inventory after use?
+        /// Set FALSE for tools like flashlight that should remain in inventory.
+        /// </summary>
+        [Tooltip("Remove item from inventory after use? Uncheck for tools like Flashlight that persist.")]
+        [SerializeField] private bool consumeItemOnUse = true;
+        
+        /// <summary>
         /// Scene to navigate to (for Navigation type)
         /// </summary>
         [Header("Navigation Settings")]
@@ -84,6 +91,14 @@ namespace CoderGoHappy.Interaction
         /// </summary>
         [Header("Puzzle Settings")]
         [SerializeField] private string puzzleID;
+        
+        /// <summary>
+        /// Text to display when examined (for Examine type)
+        /// </summary>
+        [Header("Examine Settings")]
+        [TextArea(2, 5)]
+        [Tooltip("Text/clue shown when player examines this object")]
+        [SerializeField] private string examineText = "";
         
         /// <summary>
         /// Highlight sprite (shown on hover)
@@ -132,6 +147,12 @@ namespace CoderGoHappy.Interaction
         private bool isHovered = false;
         
         /// <summary>
+        /// Original local scale — stored in Awake to support custom-scaled objects.
+        /// DOTween highlight multiplies against this instead of assuming scale (1,1,1).
+        /// </summary>
+        private Vector3 originalScale;
+        
+        /// <summary>
         /// Pulse tween reference
         /// </summary>
         private Tween pulseTween;
@@ -155,19 +176,40 @@ namespace CoderGoHappy.Interaction
             {
                 normalSprite = spriteRenderer.sprite;
             }
+            
+            // Store original scale so highlight animation scales relative to it,
+            // not relative to world-scale (1,1,1). This fixes objects that are
+            // shrunk/enlarged in the scene.
+            originalScale = transform.localScale;
+            
+            // FIX: Find systems in Awake so they are ready before OnEnable runs.
+            // OnEnable fires before Start in Unity lifecycle, so finding here ensures
+            // hotspotManager is not null when OnEnable tries to register.
+            hotspotManager = FindFirstObjectByType<HotspotManager>();
+            inventorySystem = FindFirstObjectByType<InventorySystem>();
+            sceneController = FindFirstObjectByType<SceneController>();
         }
         
         private void Start()
         {
-            // Find required systems
-            hotspotManager = FindFirstObjectByType<HotspotManager>();
-            inventorySystem = FindFirstObjectByType<InventorySystem>();
-            sceneController = FindFirstObjectByType<SceneController>();
+            // Re-find systems in case scene was loaded additively and they weren't ready in Awake
+            if (hotspotManager == null)
+                hotspotManager = FindFirstObjectByType<HotspotManager>();
+            if (inventorySystem == null)
+                inventorySystem = FindFirstObjectByType<InventorySystem>();
+            if (sceneController == null)
+                sceneController = FindFirstObjectByType<SceneController>();
             
             // Auto-calculate bounds if enabled
             if (autoCalculateBounds && spriteRenderer != null)
             {
                 CalculateBoundsFromSprite();
+            }
+            
+            // Register here as a fallback in case OnEnable fired before Awake found the manager
+            if (hotspotManager != null && isActive)
+            {
+                hotspotManager.RegisterHotspot(this);
             }
             
             // Check if this hotspot should be disabled based on scene state
@@ -176,7 +218,7 @@ namespace CoderGoHappy.Interaction
         
         private void OnEnable()
         {
-            // Register with HotspotManager
+            // Register with HotspotManager (hotspotManager is found in Awake, so safe here)
             if (hotspotManager != null)
             {
                 hotspotManager.RegisterHotspot(this);
@@ -212,9 +254,12 @@ namespace CoderGoHappy.Interaction
             
             Bounds spriteBounds = spriteRenderer.bounds;
             
+            // FIX: spriteRenderer.bounds is in WORLD space (already includes transform.position).
+            // IsPointInBounds() adds transform.position again, so we must store LOCAL offsets.
+            // Subtract transform.position to convert world bounds → local-relative bounds.
             customBounds = new Rect(
-                spriteBounds.min.x,
-                spriteBounds.min.y,
+                spriteBounds.min.x - transform.position.x,
+                spriteBounds.min.y - transform.position.y,
                 spriteBounds.size.x,
                 spriteBounds.size.y
             );
@@ -347,8 +392,29 @@ namespace CoderGoHappy.Interaction
                     break;
                 
                 case HotspotType.ItemUse:
-                    // Item use requires drag-drop, not click
-                    Debug.Log($"[HotspotComponent] {hotspotID}: Item use requires dragging item from inventory");
+                    // Support both drag-drop AND click-to-use (when item is already selected)
+                    if (inventorySystem != null)
+                    {
+                        ItemData selected = inventorySystem.GetSelectedItem();
+                        if (selected != null)
+                        {
+                            bool used = TryUseItem(selected);
+                            if (!used)
+                            {
+                                // Wrong item selected
+                                string needed = requiredItem != null ? requiredItem.itemName : "???";
+                                EventManager.Instance?.Publish("ShowDialogue",
+                                    $"Cần dùng: <b>{needed}</b>\nBạn đang giữ: <b>{selected.itemName}</b>");
+                            }
+                        }
+                        else
+                        {
+                            // No item selected
+                            string needed = requiredItem != null ? requiredItem.itemName : "vật phẩm phù hợp";
+                            EventManager.Instance?.Publish("ShowDialogue",
+                                $"Cần dùng <b>{needed}</b> vào đây.\nChọn vật phẩm từ túi đồ trước!");
+                        }
+                    }
                     break;
                 
                 case HotspotType.Examine:
@@ -449,10 +515,15 @@ namespace CoderGoHappy.Interaction
         {
             Debug.Log($"[HotspotComponent] {hotspotID}: Used {usedItem.itemName} successfully!");
             
-            // Remove item from inventory
-            if (inventorySystem != null)
+            // Remove item from inventory (only if consumeItemOnUse is true)
+            if (consumeItemOnUse && inventorySystem != null)
             {
                 inventorySystem.RemoveItem(usedItem);
+            }
+            else
+            {
+                // Item stays in inventory – deselect it
+                inventorySystem?.DeselectItem();
             }
             
             // Publish custom success event if specified
@@ -517,8 +588,22 @@ namespace CoderGoHappy.Interaction
         /// </summary>
         private void ExecuteExamineAction()
         {
-            // TODO: Implement dialogue/description system
-            Debug.Log($"[HotspotComponent] {hotspotID}: Examine action (not yet implemented)");
+            if (!string.IsNullOrEmpty(examineText))
+            {
+                // Show examine text via DialoguePopup
+                EventManager.Instance?.Publish("ShowDialogue", examineText);
+                Debug.Log($"[HotspotComponent] {hotspotID}: Examine → {examineText}");
+            }
+            else if (!string.IsNullOrEmpty(successEventName))
+            {
+                // Fallback: fire custom event
+                EventManager.Instance?.Publish(successEventName, this);
+                Debug.Log($"[HotspotComponent] {hotspotID}: Examine → event '{successEventName}'");
+            }
+            else
+            {
+                Debug.LogWarning($"[HotspotComponent] {hotspotID}: Examine type has no examineText set!");
+            }
         }
         
         #endregion
@@ -536,11 +621,13 @@ namespace CoderGoHappy.Interaction
                 spriteRenderer.sprite = highlightSprite;
             }
             
-            // Pulse animation
+            // Pulse animation — scale RELATIVE to the object's original scale,
+            // not to (1,1,1). This preserves manually-set sizes in the scene.
             if (pulseOnHover && spriteRenderer != null)
             {
                 pulseTween?.Kill();
-                pulseTween = transform.DOScale(highlightScale, 0.5f)
+                Vector3 targetScale = originalScale * highlightScale;
+                pulseTween = transform.DOScale(targetScale, 0.3f)
                     .SetEase(Ease.InOutSine)
                     .SetLoops(-1, LoopType.Yoyo);
             }
@@ -557,11 +644,12 @@ namespace CoderGoHappy.Interaction
                 spriteRenderer.sprite = normalSprite;
             }
             
-            // Stop pulse animation
+            // Stop pulse animation — restore to originalScale, not hardcoded 1f.
             if (pulseTween != null)
             {
                 pulseTween.Kill();
-                transform.DOScale(1f, 0.2f).SetEase(Ease.OutQuad);
+                pulseTween = null;
+                transform.DOScale(originalScale, 0.15f).SetEase(Ease.OutQuad);
             }
         }
         
