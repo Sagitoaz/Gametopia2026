@@ -275,13 +275,10 @@ namespace CoderGoHappy.Interaction
             
             SceneState state = sceneController.GetSceneState(sceneController.CurrentSceneName);
             
-            if (state != null)
+            if (state != null && state.IsHotspotDisabled(hotspotID))
             {
-                // Check if this hotspot is disabled in scene state
-                if (state.IsHotspotDisabled(hotspotID))
-                {
-                    SetActive(false);
-                }
+                // Fully hide the GameObject so the sprite is gone, not just the interaction flag
+                gameObject.SetActive(false);
             }
         }
         

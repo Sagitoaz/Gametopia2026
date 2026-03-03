@@ -90,6 +90,7 @@ namespace CoderGoHappy.Core
             #if UNITY_EDITOR
             // In Editor, always start fresh - delete any saved state from previous play sessions
             PlayerPrefs.DeleteKey(SAVE_KEY);
+            SceneController.ClearAllStates();
             Debug.Log("[GameManager] EDITOR: Save data cleared for fresh test session");
             #endif
 
