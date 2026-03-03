@@ -1,6 +1,7 @@
 using UnityEngine;
 using CoderGoHappy.Events;
 using CoderGoHappy.Core;
+using CoderGoHappy.Scene;
 
 /// <summary>
 /// ActivateOnEvent — listens for a named event and activates/deactivates GameObjects.
@@ -28,6 +29,12 @@ public class ActivateOnEvent : MonoBehaviour
     [SerializeField] private bool runOnce = true;
 
     private bool hasFired = false;
+
+    /// <summary>Has this event been fired at least once?</summary>
+    public bool HasFired => hasFired;
+
+    /// <summary>The event name this component listens for.</summary>
+    public string EventName => eventName;
 
     private void OnEnable()
     {
@@ -64,7 +71,29 @@ public class ActivateOnEvent : MonoBehaviour
             }
         }
 
+        // Record in scene state so revisiting the scene restores this result
+        FindFirstObjectByType<SceneController>()?.RecordFiredEvent(eventName);
+
         // Unsubscribe if run-once
+        if (runOnce)
+            EventManager.Instance?.Unsubscribe(eventName, OnEventReceived);
+    }
+
+    /// <summary>
+    /// Silently re-apply activate/deactivate actions without publishing any events.
+    /// Called by SceneController.RestoreSceneState() when revisiting a scene.
+    /// </summary>
+    public void ApplyActions()
+    {
+        hasFired = true;
+
+        foreach (var obj in objectsToActivate)
+            if (obj != null) obj.SetActive(true);
+
+        foreach (var obj in objectsToDeactivate)
+            if (obj != null) obj.SetActive(false);
+
+        // Unsubscribe so the event can't double-fire
         if (runOnce)
             EventManager.Instance?.Unsubscribe(eventName, OnEventReceived);
     }

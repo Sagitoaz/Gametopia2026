@@ -32,6 +32,12 @@ namespace CoderGoHappy.Scene
         /// List of disabled hotspot IDs (e.g., picked up items)
         /// </summary>
         public List<string> disabledHotspotIDs = new List<string>();
+
+        /// <summary>
+        /// List of ActivateOnEvent event names that have been fired in this scene.
+        /// Used to restore activate/deactivate object states on scene revisit.
+        /// </summary>
+        public List<string> firedEventNames = new List<string>();
         
         /// <summary>
         /// Has this scene been visited before?
@@ -126,6 +132,23 @@ namespace CoderGoHappy.Scene
         public bool IsHotspotDisabled(string hotspotID)
         {
             return disabledHotspotIDs.Contains(hotspotID);
+        }
+
+        /// <summary>
+        /// Record that an ActivateOnEvent event was fired in this scene
+        /// </summary>
+        public void MarkEventFired(string eventName)
+        {
+            if (!string.IsNullOrEmpty(eventName) && !firedEventNames.Contains(eventName))
+                firedEventNames.Add(eventName);
+        }
+
+        /// <summary>
+        /// Check if an ActivateOnEvent event was already fired in this scene
+        /// </summary>
+        public bool IsEventFired(string eventName)
+        {
+            return firedEventNames.Contains(eventName);
         }
         
         /// <summary>

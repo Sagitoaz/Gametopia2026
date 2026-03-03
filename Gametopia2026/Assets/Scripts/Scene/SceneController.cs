@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using DG.Tweening;
 using CoderGoHappy.Core;
 using CoderGoHappy.Events;
+using CoderGoHappy.Interaction;
 
 namespace CoderGoHappy.Scene
 {
@@ -17,9 +18,11 @@ namespace CoderGoHappy.Scene
         #region Fields
         
         /// <summary>
-        /// Dictionary of scene states (scene name → SceneState)
+        /// Dictionary of scene states (scene name → SceneState).
+        /// STATIC so it survives scene loads — the Dictionary lives for the entire play session.
+        /// Cleared when starting a new game (see ClearAllStates()).
         /// </summary>
-        private Dictionary<string, SceneState> sceneStates = new Dictionary<string, SceneState>();
+        private static Dictionary<string, SceneState> sceneStates = new Dictionary<string, SceneState>();
         
         /// <summary>
         /// Current scene name
@@ -52,7 +55,7 @@ namespace CoderGoHappy.Scene
             // Mark current scene as visited
             GetSceneState(currentSceneName).MarkVisited();
             
-            // Restore scene state if revisiting
+            // Restore scene state if revisiting (sceneStates is static, so data survives reload)
             RestoreSceneState(currentSceneName);
             
             Debug.Log($"[SceneController] Initialized in scene: {currentSceneName}");
@@ -208,35 +211,62 @@ namespace CoderGoHappy.Scene
         {
             if (string.IsNullOrEmpty(currentSceneName))
                 return;
-            
+
             SceneState state = GetSceneState(currentSceneName);
-            
-            // TODO: Collect state from active hotspots, puzzles, etc.
-            // For now, scene state is managed by individual components
-            
-            Debug.Log($"[SceneController] Saved state for scene: {currentSceneName}");
+
+            // Walk all ActivateOnEvent components (including inactive) and record fired events
+            var activators = FindObjectsByType<ActivateOnEvent>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var a in activators)
+            {
+                if (a.HasFired && !string.IsNullOrEmpty(a.EventName))
+                    state.MarkEventFired(a.EventName);
+            }
+
+            Debug.Log($"[SceneController] Saved state for '{currentSceneName}': " +
+                      $"{state.disabledHotspotIDs.Count} disabled hotspots, " +
+                      $"{state.firedEventNames.Count} fired events");
         }
         
         /// <summary>
         /// Restore scene state for a given scene
         /// </summary>
-        /// <param name="sceneName">Name of the scene to restore</param>
         public void RestoreSceneState(string sceneName)
         {
             SceneState state = GetSceneState(sceneName);
-            
+
             if (!state.visited)
             {
-                // First visit, nothing to restore
+                Debug.Log($"[SceneController] First visit to '{sceneName}', nothing to restore");
                 return;
             }
-            
-            // TODO: Apply state to scene objects
-            // - Disable collected item hotspots
-            // - Mark puzzles as solved
-            // - etc.
-            
-            Debug.Log($"[SceneController] Restored state for scene: {sceneName}");
+
+            Debug.Log($"[SceneController] Restoring '{sceneName}': " +
+                      $"{state.disabledHotspotIDs.Count} disabled hotspots, " +
+                      $"{state.firedEventNames.Count} fired events");
+
+            // ── 1. Hide hotspots that were picked up / used ──────────────────────
+            var hotspots = FindObjectsByType<HotspotComponent>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var h in hotspots)
+            {
+                if (!string.IsNullOrEmpty(h.hotspotID) && state.IsHotspotDisabled(h.hotspotID))
+                {
+                    h.gameObject.SetActive(false);
+                    Debug.Log($"[SceneController]   Hide hotspot: {h.hotspotID}");
+                }
+            }
+
+            // ── 2. Re-apply ActivateOnEvent results silently ─────────────────────
+            var activators = FindObjectsByType<ActivateOnEvent>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var a in activators)
+            {
+                if (!string.IsNullOrEmpty(a.EventName) && state.IsEventFired(a.EventName))
+                {
+                    a.ApplyActions();
+                    Debug.Log($"[SceneController]   Replay ActivateOnEvent: '{a.EventName}'");
+                }
+            }
         }
         
         /// <summary>
@@ -259,6 +289,26 @@ namespace CoderGoHappy.Scene
             return sceneStates[sceneName];
         }
         
+        /// <summary>
+        /// Record that an ActivateOnEvent fired in the current scene.
+        /// Called by ActivateOnEvent after it fires.
+        /// </summary>
+        public void RecordFiredEvent(string eventName)
+        {
+            if (string.IsNullOrEmpty(currentSceneName) || string.IsNullOrEmpty(eventName))
+                return;
+            GetSceneState(currentSceneName).MarkEventFired(eventName);
+        }
+
+        /// <summary>
+        /// Clear all persisted scene states (call when starting a new game or in Editor reset).
+        /// </summary>
+        public static void ClearAllStates()
+        {
+            sceneStates.Clear();
+            Debug.Log("[SceneController] All scene states cleared");
+        }
+
         /// <summary>
         /// Clear scene state (for restart functionality)
         /// </summary>

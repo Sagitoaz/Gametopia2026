@@ -7091,6 +7091,7 @@ MonoBehaviour:
   - {fileID: 1844451412}
   objectsToDeactivate:
   - {fileID: 1311089428}
+  - {fileID: 1564102255}
   runOnce: 1
 --- !u!61 &1539996867
 BoxCollider2D:
