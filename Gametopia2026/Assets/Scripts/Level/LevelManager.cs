@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using CoderGoHappy.Core;
 using CoderGoHappy.Events;
 
@@ -119,12 +120,16 @@ namespace CoderGoHappy.Level
         private void OnMiniBugCollected(object data)
         {
             bugsCollectedThisRun++;
-            Debug.Log($"[LevelManager] MiniBug collected! Total in run: {bugsCollectedThisRun}/{totalMiniBugsInLevel}");
+            int collected = GameStateData.Instance != null
+                ? GameStateData.Instance.miniBugsCollected
+                : bugsCollectedThisRun;
 
-            // Publish event for UI update
+            Debug.Log($"[LevelManager] MiniBug collected! Total: {collected}/{totalMiniBugsInLevel}");
+
+            // Publish UI update with global count
             EventManager.Instance?.Publish("BugCounterUpdate", new BugCountData
             {
-                collected = GameStateData.Instance.miniBugsCollected,
+                collected = collected,
                 total = totalMiniBugsInLevel
             });
         }
@@ -300,11 +305,15 @@ namespace CoderGoHappy.Level
         public bool IsLevelCompleted() => levelCompleted;
 
         /// <summary>
-        /// Get MiniBug collection progress
+        /// Get MiniBug collection progress.
+        /// collected = global total from GameStateData; total = configured in this LevelManager.
         /// </summary>
         public (int collected, int total) GetMiniBugProgress()
         {
-            return (GameStateData.Instance.miniBugsCollected, totalMiniBugsInLevel);
+            int collected = GameStateData.Instance != null
+                ? GameStateData.Instance.miniBugsCollected
+                : bugsCollectedThisRun;
+            return (collected, totalMiniBugsInLevel);
         }
 
         /// <summary>

@@ -5,6 +5,8 @@ using CoderGoHappy.Core;
 using CoderGoHappy.Events;
 using CoderGoHappy.Level;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 namespace CoderGoHappy.UI
 {
@@ -64,9 +66,10 @@ namespace CoderGoHappy.UI
                     Debug.LogError("[BugCounterUI] TextMeshProUGUI component not found!", this);
                 }
             }
+
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
             // Subscribe to events
             if (EventManager.Instance != null)
@@ -75,17 +78,10 @@ namespace CoderGoHappy.UI
                 EventManager.Instance.Subscribe("BugCounterUpdate", OnBugCounterUpdate);
             }
 
-            // Initialize display from LevelManager
-            if (LevelManager.Instance != null)
-            {
-                var (collected, total) = LevelManager.Instance.GetMiniBugProgress();
-                UpdateDisplay(collected, total, false);
-            }
-            else
-            {
-                // Fallback: use GameStateData
-                UpdateDisplay(0, 10, false);
-            }
+            // Wait 1 frame so LevelManager.Awake() and Start() in the new scene have all run
+            yield return null;
+
+            RefreshDisplay(false);
         }
 
         private void OnDestroy()
@@ -96,20 +92,36 @@ namespace CoderGoHappy.UI
                 EventManager.Instance.Unsubscribe(GameEvents.MiniBugCollected, OnMiniBugCollected);
                 EventManager.Instance.Unsubscribe("BugCounterUpdate", OnBugCounterUpdate);
             }
+
         }
 
         #endregion
 
         #region Event Handlers
 
+        /// <summary>
+        /// Read current global bug count from GameStateData and update the display.
+        /// Uses GameStateData.miniBugsCollected (global total across all scenes).
+        /// </summary>
+        private void RefreshDisplay(bool animate)
+        {
+            if (GameStateData.Instance == null)
+            {
+                Debug.LogWarning("[BugCounterUI] RefreshDisplay: GameStateData.Instance is null!");
+                return;
+            }
+
+            int collected = GameStateData.Instance.miniBugsCollected;
+            int total = LevelManager.Instance != null
+                ? LevelManager.Instance.GetMiniBugProgress().total
+                : currentTotal;
+
+            UpdateDisplay(collected, total, animate);
+        }
+
         private void OnMiniBugCollected(object data)
         {
-            // Get updated count (data might be ItemData or null)
-            if (LevelManager.Instance != null)
-            {
-                var (collected, total) = LevelManager.Instance.GetMiniBugProgress();
-                UpdateDisplay(collected, total, true);
-            }
+            RefreshDisplay(true);
         }
 
         private void OnBugCounterUpdate(object data)

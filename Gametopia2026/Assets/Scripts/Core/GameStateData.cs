@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CoderGoHappy.Core
@@ -26,6 +27,7 @@ namespace CoderGoHappy.Core
             }
             
             instance = this;
+            DontDestroyOnLoad(gameObject); // Persist bug/item/puzzle data across all scene loads
             Debug.Log("[GameStateData] Initialized");
         }
         
@@ -64,9 +66,14 @@ namespace CoderGoHappy.Core
         public float totalPlayTime = 0f;
         
         /// <summary>
-        /// Number of MiniBugs collected
+        /// Number of MiniBugs collected (cumulative across all scenes, for stats/achievements)
         /// </summary>
         public int miniBugsCollected = 0;
+
+        /// <summary>
+        /// IDs of collected bugs, stored as "SceneName__bugID" for per-scene filtering
+        /// </summary>
+        public List<string> collectedBugIDs = new List<string>();
         
         /// <summary>
         /// Last save timestamp
@@ -138,6 +145,7 @@ namespace CoderGoHappy.Core
             sceneStates.Clear();
             totalPlayTime = 0f;
             miniBugsCollected = 0;
+            collectedBugIDs.Clear();
             lastSaveTime = "";
             
             Debug.Log("[GameStateData] Game state reset to defaults");
@@ -186,7 +194,45 @@ namespace CoderGoHappy.Core
                 solvedPuzzleIDs.Add(puzzleID);
             }
         }
-        
+
+        // ── Bug collection helpers ────────────────────────────────────────────
+
+        /// <summary>
+        /// Build the scene-qualified key used to identify a bug uniquely.
+        /// Format: "SceneName__bugID"
+        /// </summary>
+        public static string BugKey(string sceneName, string bugID) => $"{sceneName}__{bugID}";
+
+        /// <summary>
+        /// Check whether a specific bug in a specific scene has been collected.
+        /// </summary>
+        public bool IsBugCollected(string sceneName, string bugID)
+            => collectedBugIDs.Contains(BugKey(sceneName, bugID));
+
+        /// <summary>
+        /// Permanently record that a bug has been collected.
+        /// Also increments the global miniBugsCollected counter.
+        /// </summary>
+        public void MarkBugCollected(string sceneName, string bugID)
+        {
+            string key = BugKey(sceneName, bugID);
+            if (!collectedBugIDs.Contains(key))
+            {
+                collectedBugIDs.Add(key);
+                miniBugsCollected++;
+                Debug.Log($"[GameStateData] Bug collected: {key} (total: {miniBugsCollected})");
+            }
+        }
+
+        /// <summary>
+        /// How many bugs have been collected in a given scene.
+        /// </summary>
+        public int GetBugsCollectedInScene(string sceneName)
+        {
+            string prefix = sceneName + "__";
+            return collectedBugIDs.Count(id => id.StartsWith(prefix));
+        }
+
         #endregion
     }
 }
