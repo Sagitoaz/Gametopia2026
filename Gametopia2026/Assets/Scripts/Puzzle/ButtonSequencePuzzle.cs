@@ -26,7 +26,7 @@ namespace CoderGoHappy.Puzzle
 
         /// <summary>
         /// Optional text to show current sequence length
-        /// </summary>
+        /// </summary>  
         [Tooltip("Optional UI Text to show sequence progress (e.g., '2/4')")]
         public TextMeshProUGUI sequenceProgressText;
 
@@ -36,8 +36,12 @@ namespace CoderGoHappy.Puzzle
         [Tooltip("Optional clear button to reset current sequence")]
         public Button clearButton;
 
-        /// <summary>
-        /// Color for normal button state
+        /// <summary>        /// Optional feedback text shown after correct / wrong sequence
+        /// </summary>
+        [Tooltip("TextMeshProUGUI to show '\u2713 Đúng rồi!' or '\u2715 Sai rồi, thử lại' feedback")]
+        [SerializeField] public TextMeshProUGUI feedbackText;
+
+        /// <summary>        /// Color for normal button state
         /// </summary>
         [Header("Visual Feedback")]
         [Tooltip("Normal button color")]
@@ -54,6 +58,9 @@ namespace CoderGoHappy.Puzzle
         /// </summary>
         [Tooltip("Color flash when sequence is wrong")]
         public Color errorColor = Color.red;
+
+        public Color correctFeedbackColor = new Color(0.2f, 0.9f, 0.3f);
+        public Color wrongFeedbackColor   = new Color(0.95f, 0.25f, 0.25f);
 
         #endregion
 
@@ -109,6 +116,7 @@ namespace CoderGoHappy.Puzzle
 
             // Reset visuals
             ResetButtonColors();
+            ClearFeedback();
 
             // Clear player sequence
             playerSequence.Clear();
@@ -203,6 +211,7 @@ namespace CoderGoHappy.Puzzle
             playerSequence.Clear();
             UpdateProgressText();
             ResetButtonColors();
+            ClearFeedback();
             SetButtonsInteractable(true);
         }
 
@@ -288,6 +297,22 @@ namespace CoderGoHappy.Puzzle
             }
         }
 
+        private void ShowFeedback(string message, Color color)
+        {
+            if (feedbackText == null) return;
+            feedbackText.text  = message;
+            feedbackText.color = color;
+            feedbackText.transform.localScale = Vector3.one;
+            feedbackText.transform.DOScale(1.1f, 0.15f)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => feedbackText.transform.DOScale(1f, 0.15f));
+        }
+
+        private void ClearFeedback()
+        {
+            if (feedbackText != null) feedbackText.text = "";
+        }
+
         /// <summary>
         /// Enable/disable button interaction
         /// </summary>
@@ -313,6 +338,14 @@ namespace CoderGoHappy.Puzzle
 
         protected override void OnPuzzleFailed()
         {
+            int remaining = config.maxAttempts > 0
+                ? config.maxAttempts - (currentAttempts + 1)
+                : -1;
+            string msg = remaining > 0
+                ? $"✕ Sai rồi! Còn {remaining} lần"
+                : "✕ Sai rồi, thử lại!";
+            ShowFeedback(msg, wrongFeedbackColor);
+
             // Flash error feedback
             FlashErrorFeedback();
 
@@ -332,6 +365,8 @@ namespace CoderGoHappy.Puzzle
 
         protected override void OnPuzzleSolved()
         {
+            ShowFeedback("✓ Đúng rồi!", correctFeedbackColor);
+
             // Disable buttons
             SetButtonsInteractable(false);
 

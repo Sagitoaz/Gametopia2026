@@ -924,12 +924,16 @@ Gán **ButtonSequencePuzzle.cs** vào `PuzzlePanel_Terminal`:
 |---|---|
 | Puzzle Config | drag `puzzle_terminal` |
 | Puzzle Buttons | Size=3: drag `PuzzleBtn_0`, `PuzzleBtn_1`, `PuzzleBtn_2` |
+| **Feedback Text** | drag `FeedbackText` |
 | Normal Sprite | drag `ui_puzzle_btn_normal` |
 | Pressed Sprite | drag `ui_puzzle_btn_pressed` |
 | Correct Sprite | drag `ui_puzzle_btn_correct` |
 | **Close Button** | drag `CloseButton` |
 | **Background Overlay** | drag `Overlay` |
 | Allow Escape To Close | ✅ true |
+
+> **FeedbackText** cần thêm vào hierarchy (nếu chưa có):
+> - Thêm `FeedbackText` (TMP | Size 24 | Bold | Center) vào trong `PanelContent`, giữa `ButtonsContainer` và `CloseButton`
 
 ---
 
@@ -1107,14 +1111,20 @@ Gán **CodeInputPuzzle.cs**:
 | Field | Giá trị |
 |---|---|
 | Puzzle Config | drag `puzzle_mainframe` |
-| Input Text Display | drag `InputText` |
-| Attempts Remaining Text | drag `AttemptsText` |
-| Number Buttons | drag NumBtn_0 đến NumBtn_9 (10 buttons) |
-| Delete Button | drag `DeleteBtn` |
-| Confirm Button | drag `ConfirmButton` |
+| **Input Display Text** | drag `InputText` |
+| **Number Buttons** | drag NumBtn_0 đến NumBtn_9 (10 buttons) |
+| **Delete Button** | drag `DeleteBtn` |
+| **Confirm Button** | drag `ConfirmButton` |
+| **Attempts Text** | drag `AttemptsText` |
+| **Feedback Text** | drag `FeedbackText` (xem chú thích bên dưới) |
 | **Close Button** | drag `CloseButton` |
 | **Background Overlay** | drag `Overlay` |
 | Allow Escape To Close | ✅ true |
+
+> **Lưu ý quan trọng**: `CodeInputPuzzle` đã được viết lại hoàn toàn — không còn dùng `TMP_InputField`. Thay vào đó dùng numpad buttons + `TextMeshProUGUI` display text.
+> - **Không** thêm `TMP_InputField` vào scene
+> - Mỗi NumBtn phải có **child TextMeshProUGUI** với text chính xác là chữ số (“0”–“9”) — code đọc label này để biết nút nào = số mấy
+> - Thêm `FeedbackText` (TMP | Size 22 | Center | Bold) vào PanelContent giữa `AttemptsText` và `ConfirmButton`
 
 ---
 

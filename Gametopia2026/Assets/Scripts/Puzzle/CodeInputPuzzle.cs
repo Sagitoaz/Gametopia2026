@@ -6,79 +6,74 @@ using TMPro;
 namespace CoderGoHappy.Puzzle
 {
     /// <summary>
-    /// CodeInput puzzle: Player must enter a numeric code.
-    /// Solution format in PuzzleConfig: "1234" (numeric string).
-    /// Validates input when submit button is clicked.
-    /// Supports optional hint display.
+    /// CodeInput puzzle: Player enters a numeric code, then confirms.
+    /// Supports TWO input modes — whichever is assigned in the Inspector:
+    ///   (A) Keyboard mode  : assign a TMP_InputField. Player types normally.
+    ///   (B) Numpad mode    : assign numberButtons[]. Player taps on-screen buttons.
+    ///   Both modes can be used at the same time.
+    ///
+    /// Solution format in PuzzleConfig: "1234" (numeric string, any length).
+    ///
+    /// Keyboard hierarchy:
+    ///   PuzzlePanel
+    ///   ├── InputField  (TMP_InputField — Text Area > Placeholder + Text)
+    ///   ├── AttemptsText
+    ///   ├── FeedbackText
+    ///   ├── ClearButton  (optional)
+    ///   └── ConfirmButton
     /// </summary>
     public class CodeInputPuzzle : PuzzleBase
     {
         #region Inspector Fields
 
-        /// <summary>
-        /// TMP_InputField where player types the code
-        /// </summary>
-        [Header("Code Input Settings")]
-        [Tooltip("TMP_InputField for player to enter code")]
-        public TMP_InputField codeInputField;
+        // ---- (A) Keyboard mode ----
+        [Header("Keyboard Input Mode")]
+        [Tooltip("TMP_InputField for typing on keyboard. If assigned, keyboard mode is active.")]
+        public TMP_InputField inputField;
 
-        /// <summary>
-        /// Button to submit the code
-        /// </summary>
-        [Tooltip("Submit button")]
-        public Button submitButton;
-
-        /// <summary>
-        /// Optional button to clear input
-        /// </summary>
-        [Tooltip("Optional clear button")]
+        [Tooltip("Optional clear button — clears the input field")]
         public Button clearButton;
 
-        /// <summary>
-        /// Optional text to show hints or feedback
-        /// </summary>
-        [Tooltip("Optional text for hints/feedback")]
+        // ---- (B) Numpad button mode ----
+        [Header("Numpad Button Mode (optional)")]
+        [Tooltip("Numpad buttons 0-9. Each must have a child TMP with its digit text.")]
+        public Button[] numberButtons;
+
+        [Tooltip("Backspace / delete button for numpad mode")]
+        public Button deleteButton;
+
+        [Tooltip("Optional TextMeshProUGUI to mirror numpad input (ignored in keyboard mode)")]
+        public TextMeshProUGUI inputDisplayText;
+
+        // ---- Shared ----
+        [Header("Shared UI")]
+        [Tooltip("Confirm / submit button")]
+        public Button confirmButton;
+
+        [Tooltip("Remaining attempts label")]
+        public TextMeshProUGUI attemptsText;
+
+        [Tooltip("Feedback label (shows ✓ / ✕ after submit)")]
         public TextMeshProUGUI feedbackText;
 
-        /// <summary>
-        /// Optional text to show description from PuzzleConfig
-        /// </summary>
-        [Tooltip("Optional text to display puzzle description")]
+        [Tooltip("Puzzle description label")]
         public TextMeshProUGUI descriptionText;
 
-        /// <summary>
-        /// Placeholder text for empty input field
-        /// </summary>
-        [Header("UI Settings")]
-        [Tooltip("Placeholder text for input field")]
-        public string placeholderText = "Enter Code...";
+        [Header("Colors")]
+        public Color correctColor   = new Color(0.2f, 0.9f, 0.3f);
+        public Color incorrectColor = new Color(0.95f, 0.25f, 0.25f);
+        public Color normalColor    = Color.white;
 
-        /// <summary>
-        /// Color for correct feedback
-        /// </summary>
-        [Tooltip("Color for success feedback")]
-        public Color correctColor = Color.green;
-
-        /// <summary>
-        /// Color for incorrect feedback
-        /// </summary>
-        [Tooltip("Color for error feedback")]
-        public Color incorrectColor = Color.red;
-
-        /// <summary>
-        /// Color for normal state
-        /// </summary>
-        [Tooltip("Normal color")]
-        public Color normalColor = Color.white;
+        [Header("Settings")]
+        [Tooltip("Max digits for numpad mode. 0 = auto from solution length. Ignored in keyboard mode.")]
+        public int maxInputLength = 0;
 
         #endregion
 
         #region State
 
-        /// <summary>
-        /// Correct solution (parsed from config)
-        /// </summary>
-        private string correctCode;
+        private string correctCode  = "";
+        private string currentInput = "";
 
         #endregion
 
@@ -88,139 +83,124 @@ namespace CoderGoHappy.Puzzle
         {
             base.Awake();
 
-            // Setup submit button
-            if (submitButton != null)
+            // ---- Keyboard mode wiring ----
+            if (inputField != null)
             {
-                submitButton.onClick.AddListener(OnSubmitClicked);
+                // onSubmit fires ONLY when user presses Enter/Return (reliable, unlike onEndEdit)
+                inputField.onSubmit.AddListener(_ => OnConfirmClicked());
+                inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
             }
 
-            // Setup clear button
             if (clearButton != null)
-            {
                 clearButton.onClick.AddListener(OnClearClicked);
-            }
 
-            // Setup input field validation (numeric only)
-            if (codeInputField != null)
+            // ---- Numpad mode wiring ----
+            if (numberButtons != null)
             {
-                codeInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
-                codeInputField.onEndEdit.AddListener(OnInputEndEdit);
-
-                // Set placeholder
-                if (codeInputField.placeholder != null)
+                foreach (Button btn in numberButtons)
                 {
-                    TextMeshProUGUI placeholderComponent = codeInputField.placeholder.GetComponent<TextMeshProUGUI>();
-                    if (placeholderComponent != null)
-                    {
-                        placeholderComponent.text = placeholderText;
-                    }
+                    if (btn == null) continue;
+                    TextMeshProUGUI label = btn.GetComponentInChildren<TextMeshProUGUI>();
+                    string digit = label != null ? label.text.Trim() : "";
+                    btn.onClick.AddListener(() => OnDigitPressed(digit));
                 }
             }
+
+            if (deleteButton  != null) deleteButton.onClick.AddListener(OnDeletePressed);
+
+            // ---- Shared ----
+            if (confirmButton != null) confirmButton.onClick.AddListener(OnConfirmClicked);
         }
 
         protected override void SetupPuzzleUI()
         {
-            // Parse solution from config
             correctCode = config.GetCodeInputSolution();
-
             if (string.IsNullOrEmpty(correctCode))
             {
                 Debug.LogError($"[CodeInputPuzzle] No valid solution in config: {config.puzzleID}");
                 return;
             }
 
-            Debug.Log($"[CodeInputPuzzle] Code length: {correctCode.Length}");
+            // Auto max-length from solution if not set in Inspector
+            if (maxInputLength <= 0)
+                maxInputLength = correctCode.Length;
 
-            // Clear input field
-            if (codeInputField != null)
+            currentInput = "";
+
+            // Clear the input field (keyboard mode)
+            if (inputField != null)
             {
-                codeInputField.text = "";
-                codeInputField.interactable = true;
-
-                // Reset input field color
-                Image inputImage = codeInputField.GetComponent<Image>();
-                if (inputImage != null)
-                {
-                    inputImage.color = normalColor;
-                }
+                inputField.text = "";
+                inputField.interactable = true;
             }
 
-            // Clear feedback
-            if (feedbackText != null)
-            {
-                feedbackText.text = "";
-            }
+            RefreshDisplay();
+            ClearFeedback();
+            RefreshAttemptsText();
 
-            // Show description if available
             if (descriptionText != null)
-            {
                 descriptionText.text = config.description;
-            }
 
-            // Enable buttons
-            SetButtonsInteractable(true);
+            SetAllInteractable(true);
+            Debug.Log($"[CodeInputPuzzle] Ready — solution length: {correctCode.Length}");
         }
 
         #endregion
 
         #region Input Handling
 
-        /// <summary>
-        /// Called when submit button is clicked
-        /// </summary>
-        private void OnSubmitClicked()
+        // Called by numpad buttons
+        private void OnDigitPressed(string digit)
         {
-            if (!isActive || isSolved)
-                return;
+            if (!isActive || isSolved) return;
+            if (maxInputLength > 0 && currentInput.Length >= maxInputLength) return;
+            if (string.IsNullOrEmpty(digit) || digit.Length != 1 || !char.IsDigit(digit[0])) return;
 
-            if (codeInputField == null)
-                return;
-
-            string playerCode = codeInputField.text.Trim();
-
-            if (string.IsNullOrEmpty(playerCode))
-            {
-                ShowFeedback("Please enter a code", incorrectColor);
-                return;
-            }
-
-            Debug.Log($"[CodeInputPuzzle] Submitting code: {playerCode}");
-
-            // Submit through base class
-            SubmitAnswer(playerCode);
+            currentInput += digit;
+            RefreshDisplay();
+            if (inputDisplayText != null)
+                inputDisplayText.transform.DOScale(1.05f, 0.07f)
+                    .SetEase(Ease.OutQuad)
+                    .OnComplete(() => inputDisplayText.transform.DOScale(1f, 0.07f));
         }
 
-        /// <summary>
-        /// Called when clear button is clicked
-        /// </summary>
+        // Called by delete / backspace button (numpad mode)
+        private void OnDeletePressed()
+        {
+            if (!isActive || isSolved) return;
+            if (currentInput.Length == 0) return;
+            currentInput = currentInput.Substring(0, currentInput.Length - 1);
+            RefreshDisplay();
+            ClearFeedback();
+        }
+
+        // Called by clear button (keyboard mode)
         private void OnClearClicked()
         {
-            if (!isActive || isSolved)
-                return;
-
-            if (codeInputField != null)
-            {
-                codeInputField.text = "";
-            }
-
-            if (feedbackText != null)
-            {
-                feedbackText.text = "";
-            }
-
-            ResetInputFieldColor();
+            if (!isActive || isSolved) return;
+            currentInput = "";
+            if (inputField != null) inputField.text = "";
+            RefreshDisplay();
+            ClearFeedback();
         }
 
-        /// <summary>
-        /// Called when player finishes editing input (presses Enter)
-        /// </summary>
-        private void OnInputEndEdit(string input)
+        // Called by confirm button OR Enter key (onSubmit)
+        private void OnConfirmClicked()
         {
-            // Auto-submit on Enter key
-            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            if (!isActive || isSolved) return;
+
+            // Keyboard mode: read from TMP_InputField
+            if (inputField != null)
+                currentInput = inputField.text.Trim();
+
+            if (string.IsNullOrEmpty(currentInput))
             {
-                OnSubmitClicked();
+                ShowFeedback("Vui lòng nhập mã!", incorrectColor);
+                return;
             }
+
+            Debug.Log($"[CodeInputPuzzle] Submitting: '{currentInput}'");
+            SubmitAnswer(currentInput);
         }
 
         #endregion
@@ -229,110 +209,96 @@ namespace CoderGoHappy.Puzzle
 
         protected override bool ValidatePlayerInput(object playerInput)
         {
-            if (!(playerInput is string playerCode))
+            if (!(playerInput is string code))
             {
-                Debug.LogError($"[CodeInputPuzzle] Invalid input type - expected string");
+                Debug.LogError("[CodeInputPuzzle] Invalid input type — expected string");
                 return false;
             }
-
-            // Simple string comparison (case-sensitive)
-            bool isCorrect = playerCode == correctCode;
-
-            Debug.Log($"[CodeInputPuzzle] Validating '{playerCode}' vs '{correctCode}': {isCorrect}");
-
-            return isCorrect;
+            bool correct = code == correctCode;
+            Debug.Log($"[CodeInputPuzzle] '{code}' vs '{correctCode}' → {correct}");
+            return correct;
         }
 
         protected override void ResetPuzzleState()
         {
-            if (codeInputField != null)
+            currentInput = "";
+            if (inputField != null)
             {
-                codeInputField.text = "";
-                codeInputField.interactable = true;
+                inputField.text = "";
+                inputField.interactable = true;
             }
-
-            if (feedbackText != null)
-            {
-                feedbackText.text = "";
-            }
-
-            ResetInputFieldColor();
-            SetButtonsInteractable(true);
+            RefreshDisplay();
+            ClearFeedback();
+            RefreshAttemptsText();
+            SetAllInteractable(true);
         }
 
         #endregion
 
-        #region Visual Feedback
+        #region Visual Helpers
 
-        /// <summary>
-        /// Show feedback message with color
-        /// </summary>
+        private void RefreshDisplay()
+        {
+            // Keyboard mode: TMP_InputField shows its own text, nothing to mirror
+            if (inputField != null) return;
+
+            // Numpad mode: mirror currentInput onto display text
+            if (inputDisplayText == null) return;
+            if (maxInputLength > 0)
+            {
+                string blanks = new string('—', maxInputLength - currentInput.Length);
+                inputDisplayText.text = currentInput + blanks;
+            }
+            else
+            {
+                inputDisplayText.text = currentInput.Length > 0 ? currentInput : "—";
+            }
+        }
+
+        private void RefreshAttemptsText()
+        {
+            if (attemptsText == null) return;
+            attemptsText.text = config.maxAttempts > 0
+                ? $"Còn {config.maxAttempts - currentAttempts} lần thử"
+                : "";
+        }
+
         private void ShowFeedback(string message, Color color)
         {
-            if (feedbackText == null)
-                return;
-
-            feedbackText.text = message;
+            if (feedbackText == null) return;
+            feedbackText.text  = message;
             feedbackText.color = color;
-
-            // Pulse animation
-            feedbackText.transform.DOScale(1.1f, 0.2f)
+            feedbackText.transform.localScale = Vector3.one;
+            feedbackText.transform.DOScale(1.1f, 0.15f)
                 .SetEase(Ease.OutQuad)
-                .OnComplete(() => {
-                    feedbackText.transform.DOScale(1f, 0.2f).SetEase(Ease.InQuad);
-                });
+                .OnComplete(() => feedbackText.transform.DOScale(1f, 0.15f));
         }
 
-        /// <summary>
-        /// Flash input field with color
-        /// </summary>
-        private void FlashInputField(Color color)
+        private void ClearFeedback()
         {
-            if (codeInputField == null)
-                return;
-
-            Image inputImage = codeInputField.GetComponent<Image>();
-            if (inputImage != null)
-            {
-                inputImage.DOColor(color, 0.2f)
-                    .SetLoops(2, LoopType.Yoyo)
-                    .OnComplete(() => inputImage.color = normalColor);
-            }
-
-            // Shake animation
-            codeInputField.transform.DOShakePosition(0.5f, strength: 10f, vibrato: 20)
-                .OnComplete(() => codeInputField.transform.localPosition = Vector3.zero);
+            if (feedbackText != null) feedbackText.text = "";
         }
 
-        /// <summary>
-        /// Reset input field to normal color
-        /// </summary>
-        private void ResetInputFieldColor()
+        private void ShakeDisplay()
         {
-            if (codeInputField == null)
-                return;
-
-            Image inputImage = codeInputField.GetComponent<Image>();
-            if (inputImage != null)
-            {
-                inputImage.color = normalColor;
-            }
+            // Shake whichever display is active
+            Transform target = inputField != null
+                ? inputField.transform
+                : inputDisplayText != null ? inputDisplayText.transform : null;
+            if (target == null) return;
+            target.DOShakePosition(0.4f, strength: 8f, vibrato: 20)
+                .OnComplete(() => target.localPosition = Vector3.zero);
         }
 
-        /// <summary>
-        /// Enable/disable buttons
-        /// </summary>
-        private void SetButtonsInteractable(bool interactable)
+        private void SetAllInteractable(bool value)
         {
-            if (submitButton != null)
-            {
-                submitButton.interactable = interactable;
-            }
-
-            if (clearButton != null)
-            {
-                clearButton.interactable = interactable;
-            }
+            if (inputField  != null) inputField.interactable  = value;
+            if (clearButton != null) clearButton.interactable = value;
+            if (numberButtons != null)
+                foreach (var btn in numberButtons)
+                    if (btn != null) btn.interactable = value;
+            if (deleteButton  != null) deleteButton.interactable  = value;
+            if (confirmButton != null) confirmButton.interactable = value;
         }
 
         #endregion
@@ -341,59 +307,53 @@ namespace CoderGoHappy.Puzzle
 
         protected override void OnPuzzleSolved()
         {
-            // Show success feedback
-            ShowFeedback("Correct!", correctColor);
-
-            // Flash green
-            if (codeInputField != null)
+            ShowFeedback("✓ Chính xác!", correctColor);
+            // Flash whichever display is active
+            if (inputField != null)
             {
-                Image inputImage = codeInputField.GetComponent<Image>();
-                if (inputImage != null)
-                {
-                    inputImage.color = correctColor;
-                }
+                var img = inputField.GetComponent<UnityEngine.UI.Image>();
+                if (img != null)
+                    img.DOColor(correctColor, 0.2f).SetLoops(2, LoopType.Yoyo)
+                        .OnComplete(() => img.color = normalColor);
             }
-
-            // Disable input
-            if (codeInputField != null)
+            else if (inputDisplayText != null)
             {
-                codeInputField.interactable = false;
+                Color orig = inputDisplayText.color;
+                inputDisplayText.DOColor(correctColor, 0.2f).SetLoops(2, LoopType.Yoyo)
+                    .OnComplete(() => inputDisplayText.color = orig);
             }
-
-            SetButtonsInteractable(false);
-
+            SetAllInteractable(false);
             base.OnPuzzleSolved();
         }
 
         protected override void OnPuzzleFailed()
         {
-            // Show failure feedback
-            ShowFeedback("Incorrect code", incorrectColor);
+            int remaining = config.maxAttempts > 0
+                ? config.maxAttempts - (currentAttempts + 1)
+                : -1;
+            string msg = remaining > 0
+                ? $"✕ Sai mã! Còn {remaining} lần thử"
+                : "✕ Sai mã!";
+            ShowFeedback(msg, incorrectColor);
+            ShakeDisplay();
+            SetAllInteractable(false);
 
-            // Flash red
-            FlashInputField(incorrectColor);
-
-            // Clear input after delay
-            DOVirtual.DelayedCall(1f, () => {
-                if (codeInputField != null)
+            DOVirtual.DelayedCall(0.9f, () =>
+            {
+                if (!isSolved)
                 {
-                    codeInputField.text = "";
+                    currentInput = "";
+                    if (inputField != null) inputField.text = "";
+                    RefreshDisplay();
+                    RefreshAttemptsText();
+                    SetAllInteractable(true);
+                    // Re-focus keyboard input field after reset
+                    if (inputField != null)
+                        inputField.ActivateInputField();
                 }
             });
 
             base.OnPuzzleFailed();
-        }
-
-        protected override void PlaySuccessFeedback()
-        {
-            base.PlaySuccessFeedback();
-            // Additional success animation can be added here
-        }
-
-        protected override void PlayFailureFeedback()
-        {
-            base.PlayFailureFeedback();
-            // Additional failure animation can be added here
         }
 
         #endregion
