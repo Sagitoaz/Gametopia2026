@@ -26,6 +26,9 @@ namespace CoderGoHappy.UI
         [Tooltip("Optional icon/sprite for bug")]
         [SerializeField] private Image bugIcon;
 
+        [Tooltip("Success image to show when all bugs collected")]
+        [SerializeField] private Image successImage;
+
         [Header("Visual Settings")]
         [Tooltip("Text format (use {0} for collected, {1} for total)")]
         [SerializeField] private string textFormat = "🐛 {0}/{1}";
@@ -43,6 +46,22 @@ namespace CoderGoHappy.UI
         [Tooltip("Pulse animation duration")]
         [SerializeField] private float pulseDuration = 0.3f;
 
+        [Header("Success Image Settings")]
+        [Tooltip("Enable success image animation")]
+        [SerializeField] private bool enableSuccessImage = true;
+
+        [Tooltip("Success image scale animation duration")]
+        [SerializeField] private float successImageScaleDuration = 0.6f;
+
+        [Tooltip("Success image rotation amount (degrees)")]
+        [SerializeField] private float successImageRotation = 360f;
+
+        [Tooltip("Success image final scale")]
+        [SerializeField] private float successImageFinalScale = 1f;
+
+        [Tooltip("Success image delay before showing")]
+        [SerializeField] private float successImageDelay = 0.2f;
+
         #endregion
 
         #region State
@@ -50,6 +69,7 @@ namespace CoderGoHappy.UI
         private int currentCollected = 0;
         private int currentTotal = 10;
         private bool isAnimating = false;
+        private bool hasShownSuccessImage = false;
 
         #endregion
 
@@ -67,6 +87,18 @@ namespace CoderGoHappy.UI
                 }
             }
 
+            // Hide success image initially
+            if (successImage != null)
+            {
+                CanvasGroup canvasGroup = successImage.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = successImage.gameObject.AddComponent<CanvasGroup>();
+                }
+                canvasGroup.alpha = 0f;
+                successImage.transform.localScale = Vector3.zero;
+                successImage.gameObject.SetActive(false);
+            }
         }
 
         private IEnumerator Start()
@@ -156,6 +188,12 @@ namespace CoderGoHappy.UI
                 if (collected >= total)
                 {
                     bugCountText.color = completedColor;
+
+                    // Show success image when all bugs collected
+                    if (!hasShownSuccessImage && enableSuccessImage)
+                    {
+                        ShowSuccessImage();
+                    }
                 }
                 else
                 {
@@ -216,6 +254,78 @@ namespace CoderGoHappy.UI
                         bugCountText.color = originalColor;
                     });
             }
+        }
+
+        /// <summary>
+        /// Show success image with smooth DOTween animation
+        /// </summary>
+        private void ShowSuccessImage()
+        {
+            if (successImage == null || hasShownSuccessImage)
+                return;
+
+            hasShownSuccessImage = true;
+
+            // Activate the image
+            successImage.gameObject.SetActive(true);
+
+            // Get or add CanvasGroup for fading
+            CanvasGroup canvasGroup = successImage.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = successImage.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            // Reset initial state
+            canvasGroup.alpha = 0f;
+            successImage.transform.localScale = Vector3.zero;
+            successImage.transform.rotation = Quaternion.identity;
+
+            // Kill any existing animations
+            successImage.transform.DOKill();
+            canvasGroup.DOKill();
+
+            // Create animation sequence
+            Sequence successSequence = DOTween.Sequence();
+
+            // Fade in
+            successSequence.Append(canvasGroup.DOFade(1f, successImageScaleDuration * 0.5f)
+                .SetEase(Ease.OutQuad));
+
+            // Scale up with bounce
+            successSequence.Join(successImage.transform.DOScale(successImageFinalScale, successImageScaleDuration)
+                .SetEase(Ease.OutBack));
+
+            // Rotate (if rotation is set)
+            if (Mathf.Abs(successImageRotation) > 0.1f)
+            {
+                successSequence.Join(successImage.transform.DORotate(
+                    new Vector3(0, 0, successImageRotation), 
+                    successImageScaleDuration, 
+                    RotateMode.FastBeyond360)
+                    .SetEase(Ease.OutQuad));
+            }
+
+            // Add a slight punch scale at the end for extra juice
+            successSequence.Append(successImage.transform.DOPunchScale(
+                Vector3.one * 0.1f, 
+                0.3f, 
+                5, 
+                0.5f));
+
+            // Add continuous gentle pulse animation
+            successSequence.OnComplete(() => {
+                successImage.transform.DOScale(
+                    successImageFinalScale * 1.05f, 
+                    1f)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine);
+            });
+
+            // Set delay before starting
+            successSequence.SetDelay(successImageDelay);
+
+            Debug.Log("[BugCounterUI] Success image displayed with animation!");
         }
 
         #endregion

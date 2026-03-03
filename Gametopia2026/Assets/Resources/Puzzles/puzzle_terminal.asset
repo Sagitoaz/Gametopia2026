@@ -22,4 +22,4 @@ MonoBehaviour:
   maxAttempts: 0
   timeLimit: 0
   rewardItem: {fileID: 0}
-  successEvent: 
+  successEvent: Bug6Appear
